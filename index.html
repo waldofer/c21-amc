@@ -243,8 +243,7 @@ body.modo-cliente #panelPresentacion{display:block;}
           </div>
           <div class="ms-chips" id="msChips"></div>
         </div>
-        <div class="field"><label>Tipo</label><select id="buscarTipo"></select></div>
-        <div class="field"><label>Subtipo</label><select id="buscarSubtipo"></select></div>
+        <div class="field"><label>Tipo de propiedad</label><select id="buscarSubtipo"></select></div>
         <div class="field"><label>Antigüedad</label><select id="buscarAntiguedad">
           <option value="12">Últimos 12 meses</option>
           <option value="18" selected>Últimos 18 meses</option>
@@ -358,7 +357,17 @@ async function _init(){
   }
   if(overlay) overlay.style.display='none';
 
-const tiposLabel = {habitacional:'Habitacional', comercial:'Comercial', rural:'Rural'};
+// Nombres tal como los muestra 21online en su filtro "Tipo Propiedad" (en los datos es el campo `su`).
+// La "Clasificación" (habitacional/comercial/rural, campo `ti`) no se usa para buscar y no se muestra.
+const SUBTIPO_LABEL = {
+  'casa':'Casa', 'casa-duplex':'Casa Dúplex', 'casa-en-condominio':'Casa en Condominio',
+  'departamento':'Departamento Terminados', 'departamento-en-pozo':'Departamento en Pozo', 'penthouse':'Penthouse',
+  'quinta':'Quinta', 'rancho':'Rancho', 'terreno':'Terreno', 'hacienda':'Hacienda', 'huerta':'Huerta',
+  'estacionamiento':'Estacionamiento', 'edificio':'Edificio', 'fraccionamiento':'Fraccionamiento', 'escuela':'Escuela',
+  'inmueble-productivo':'Inmueble Productivo', 'local':'Local', 'oficinas':'Oficina', 'bodega':'Bodega',
+  'fabrica':'Fábrica', 'nave':'Depósito / Tinglado', 'estancia':'Estancia/Ganadera', 'propiedad-agricola':'Propiedad Agrícola'
+};
+function subtipoLabel(su){ return SUBTIPO_LABEL[su] || tituloCase(String(su).replace(/-/g,' ')); }
 
 const UNIT_SUBTYPES = new Set(['departamento','departamento-en-pozo','penthouse','oficinas','estacionamiento']);
 const CASA_SUBTYPES = new Set(['casa','casa-duplex','casa-en-condominio','quinta','rancho','estancia']);
@@ -384,7 +393,7 @@ function colorRecencia(fc){
 
 function filaResultadoHtml(d){
   const familia = familiaSubtipo(d.su);
-  const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:tituloCase(d.su.replace(/-/g,' '))}[familia];
+  const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:subtipoLabel(d.su)}[familia];
   const base = UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
   const rate = (base && base>0) ? Math.round(d.pr/base) : null;
   const etiquetaM2 = UNIT_SUBTYPES.has(d.su) ? 'm² propio' : 'm²';
@@ -425,7 +434,7 @@ function agruparConsecutivos(lista){
 function grupoResumenHtml(items, grupoId){
   const d0 = items[0];
   const familia = familiaSubtipo(d0.su);
-  const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:tituloCase(d0.su.replace(/-/g,' '))}[familia];
+  const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:subtipoLabel(d0.su)}[familia];
   const baseDe = (d)=> UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
   const base = baseDe(d0);
   const etiquetaM2 = UNIT_SUBTYPES.has(d0.su) ? 'm² propio' : 'm²';
@@ -542,7 +551,6 @@ document.getElementById('subFechaEval').addEventListener('input', ()=>{
 const btnAgregarRef = document.getElementById('btnAgregarRef');
 const buscadorPanel = document.getElementById('buscadorPanel');
 const buscarTexto = document.getElementById('buscarTexto');
-const buscarTipo = document.getElementById('buscarTipo');
 const buscarSubtipo = document.getElementById('buscarSubtipo');
 const buscarAntiguedad = document.getElementById('buscarAntiguedad');
 const resultadosBusqueda = document.getElementById('resultadosBusqueda');
@@ -557,16 +565,13 @@ function fechaLimiteAntiguedad(){
 }
 
 function poblarFiltrosBusqueda(){
-  const tipos = [...new Set(DATA.map(d=>d.ti))];
-  buscarTipo.innerHTML = '<option value="">Todos</option>' + tipos.map(t=>`<option value="${t}">${tiposLabel[t]||t}</option>`).join('');
-  actualizarSubtiposBusqueda();
+  // Mismo criterio que 21online: lista alfabética con la cantidad entre paréntesis.
+  const cuenta = {};
+  DATA.forEach(d=>{ cuenta[d.su] = (cuenta[d.su]||0) + 1; });
+  const subs = Object.keys(cuenta).sort((a,b)=>subtipoLabel(a).localeCompare(subtipoLabel(b),'es'));
+  buscarSubtipo.innerHTML = '<option value="">Todos</option>' +
+    subs.map(s=>`<option value="${s}">${subtipoLabel(s)} (${cuenta[s].toLocaleString('es-PY')})</option>`).join('');
 }
-function actualizarSubtiposBusqueda(){
-  const tipo = buscarTipo.value;
-  const subs = [...new Set(DATA.filter(d=>!tipo || d.ti===tipo).map(d=>d.su))].sort((a,b)=>a.localeCompare(b,'es'));
-  buscarSubtipo.innerHTML = '<option value="">Todos</option>' + subs.map(s=>`<option value="${s}">${s.replace(/-/g,' ')}</option>`).join('');
-}
-buscarTipo.addEventListener('change', ()=>{ actualizarSubtiposBusqueda(); ejecutarBusqueda(); });
 buscarAntiguedad.addEventListener('change', ()=>{
   antiguedadMeses = parseInt(buscarAntiguedad.value);
   ejecutarBusqueda();
@@ -739,7 +744,6 @@ function puntoEnAreaDibujadaBusqueda(lat, lng){
 
 function ejecutarBusqueda(){
   const q = buscarTexto.value.trim().toLowerCase();
-  const tipo = buscarTipo.value;
   const sub = buscarSubtipo.value;
   const limiteAntiguedad = fechaLimiteAntiguedad();
 
@@ -749,7 +753,6 @@ function ejecutarBusqueda(){
   }
 
   function coincideSinVentana(d){
-    if(tipo && d.ti!==tipo) return false;
     if(sub && d.su!==sub) return false;
     if(modoBusqueda==='mapa'){
       if(!puntoEnAreaDibujadaBusqueda(d.la, d.lo)) return false;
@@ -907,7 +910,7 @@ function renderReferencias(){
         </div>
         <div class="ref-datos">
           <span>Barrio: <b>${d.mu}</b></span>
-          <span>Subtipo: <b>${d.su.replace(/-/g,' ')}</b></span>
+          <span>Subtipo: <b>${subtipoLabel(d.su)}</b></span>
           <span>M² terreno: <b>${d.mt}</b></span>
           ${d.mc ? `<span>M² construidos: <b>${d.mc}</b></span>` : ''}
           <span>Precio: <b>${fmtUSD(d.pr)}</b></span>
@@ -967,7 +970,7 @@ function renderComparables(list){
   }
   cont.innerHTML = list.map(c=>{
     const familia = familiaSubtipo(c.su);
-    const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:tituloCase(c.su.replace(/-/g,' '))}[familia];
+    const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:subtipoLabel(c.su)}[familia];
     const base = UNIT_SUBTYPES.has(c.su) ? c.mc : c.mt;
     const rate = (base && base>0) ? Math.round(c.pr/base) : null;
     const etiquetaM2 = UNIT_SUBTYPES.has(c.su) ? 'm² propio' : 'm²';

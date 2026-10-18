@@ -102,11 +102,7 @@ table.mini td.num{text-align:right;font-variant-numeric:tabular-nums;}
         <div class="ms-chips" id="msChips"></div>
       </div>
       <div class="field">
-        <label>Tipo</label>
-        <select id="filtroTipo"></select>
-      </div>
-      <div class="field">
-        <label>Subtipo</label>
+        <label>Tipo de propiedad</label>
         <select id="filtroSubtipo"></select>
       </div>
     </div>
@@ -172,7 +168,17 @@ async function _init(){
       `Century 21 Paraguay · Cerradas ${anioMin===anioMax ? anioMin : anioMin+'–'+anioMax}`;
   }
 
-const tiposLabel = {habitacional:'Habitacional', comercial:'Comercial', rural:'Rural'};
+// Nombres tal como los muestra 21online en su filtro "Tipo Propiedad" (en los datos es el campo `su`).
+// La "Clasificación" (habitacional/comercial/rural, campo `ti`) no se usa para buscar y no se muestra.
+const SUBTIPO_LABEL = {
+  'casa':'Casa', 'casa-duplex':'Casa Dúplex', 'casa-en-condominio':'Casa en Condominio',
+  'departamento':'Departamento Terminados', 'departamento-en-pozo':'Departamento en Pozo', 'penthouse':'Penthouse',
+  'quinta':'Quinta', 'rancho':'Rancho', 'terreno':'Terreno', 'hacienda':'Hacienda', 'huerta':'Huerta',
+  'estacionamiento':'Estacionamiento', 'edificio':'Edificio', 'fraccionamiento':'Fraccionamiento', 'escuela':'Escuela',
+  'inmueble-productivo':'Inmueble Productivo', 'local':'Local', 'oficinas':'Oficina', 'bodega':'Bodega',
+  'fabrica':'Fábrica', 'nave':'Depósito / Tinglado', 'estancia':'Estancia/Ganadera', 'propiedad-agricola':'Propiedad Agrícola'
+};
+function subtipoLabel(su){ return SUBTIPO_LABEL[su] || String(su).replace(/-/g,' '); }
 const UNIT_SUBTYPES = new Set(['departamento','departamento-en-pozo','penthouse','oficinas','estacionamiento']);
 
 // ---------- Multiselect de barrios ----------
@@ -235,20 +241,18 @@ actualizarMsTriggerText();
 }
 
 // ---------- Filtros tipo/subtipo ----------
-const filtroTipo = document.getElementById('filtroTipo');
 const filtroSubtipo = document.getElementById('filtroSubtipo');
-const tiposTodos = [...new Set(DATA.map(d=>d.ti))];
-filtroTipo.innerHTML = tiposTodos.map(t=>`<option value="${t}">${tiposLabel[t]||t}</option>`).join('');
-filtroTipo.value = 'habitacional';
 
-function actualizarSubtipos(){
-  const subs = [...new Set(DATA.filter(d=>d.ti===filtroTipo.value).map(d=>d.su))].sort((a,b)=>a.localeCompare(b,'es'));
-  filtroSubtipo.innerHTML = subs.map(s=>`<option value="${s}">${s.replace(/-/g,' ')}</option>`).join('');
+function poblarSubtipos(){
+  // Mismo criterio que 21online: lista alfabética con la cantidad entre paréntesis.
+  const cuenta = {};
+  DATA.forEach(d=>{ cuenta[d.su] = (cuenta[d.su]||0) + 1; });
+  const subs = Object.keys(cuenta).sort((a,b)=>subtipoLabel(a).localeCompare(subtipoLabel(b),'es'));
+  filtroSubtipo.innerHTML = subs.map(s=>`<option value="${s}">${subtipoLabel(s)} (${cuenta[s].toLocaleString('es-PY')})</option>`).join('');
   if(subs.includes('departamento-en-pozo')) filtroSubtipo.value = 'departamento-en-pozo';
 }
-filtroTipo.addEventListener('change', ()=>{ actualizarSubtipos(); actualizar(); });
 filtroSubtipo.addEventListener('change', actualizar);
-actualizarSubtipos();
+poblarSubtipos();
 
 // ---------- Utilidades ----------
 function trimestreDe(fechaStr){
@@ -277,7 +281,6 @@ let chartPrecio, chartDescuento, chartDias;
 function actualizar(){
   const msg = document.getElementById('msg');
   msg.textContent = '';
-  const tipo = filtroTipo.value;
   const subtipo = filtroSubtipo.value;
   if(!subtipo) return;
 
@@ -288,7 +291,7 @@ function actualizar(){
 
   let filtrados = DATA.filter(d=>{
     if(municipiosSeleccionados.length>0 && !municipiosSeleccionados.includes(d.mu)) return false;
-    return d.ti===tipo && d.su===subtipo;
+    return d.su===subtipo;
   });
 
   if(filtrados.length < 8){
@@ -372,7 +375,7 @@ function actualizar(){
   tabla.innerHTML = html;
 
   document.getElementById('footnoteFinal').textContent =
-    `Filtro activo: ${municipiosSeleccionados.length? municipiosSeleccionados.join(', ') : 'todos los barrios'} · ${tiposLabel[tipo]||tipo} · ${subtipo.replace(/-/g,' ')}. ` +
+    `Filtro activo: ${municipiosSeleccionados.length? municipiosSeleccionados.join(', ') : 'todos los barrios'} · ${subtipoLabel(subtipo)}. ` +
     `Precios en USD nominal (tal como se publican en el mercado) — no ajustados por variación del tipo de cambio Gs/USD entre trimestres.`;
 
   // Tabla de detalle: todas las propiedades detrás del filtro actual
