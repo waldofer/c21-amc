@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Armador de AMC - C21 White</title>
+<style>
+:root{
+  --carbon:#1C1A17;
+  --carbon-2:#26221d;
+  --hueso:#FAF8F4;
+  --hueso-dim:#e8e3d8;
+  --dorado:#B7A165;
+  --dorado-soft:#8f7f4f;
+  --linea:#3a352c;
+  --rojo-alerta:#c0654f;
+  --verde-ok:#7a9b76;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--carbon);color:var(--hueso);font-family:'Georgia','Iowan Old Style',serif;min-height:100vh;}
+.wrap{max-width:980px;margin:0 auto;padding:36px 24px 80px;}
+.masthead{border-bottom:1px solid var(--linea);padding-bottom:20px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;}
+.masthead h1{font-size:26px;font-weight:400;letter-spacing:0.02em;margin:0;}
+.masthead h1 em{font-style:normal;color:var(--dorado);}
+.masthead .tag{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.6;}
+.panel{background:var(--carbon-2);border:1px solid var(--linea);border-radius:2px;padding:24px;margin-bottom:22px;}
+.panel h2{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dorado);margin:0 0 16px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.75;}
+input,select{background:var(--carbon);border:1px solid var(--linea);color:var(--hueso);padding:9px 10px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;border-radius:2px;outline:none;width:100%;}
+input:focus,select:focus{border-color:var(--dorado);}
+input::placeholder{color:var(--hueso-dim);opacity:0.4;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+.btn{padding:10px 18px;background:var(--dorado);color:var(--carbon);border:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;border-radius:2px;cursor:pointer;}
+.btn:hover{background:#c7b276;}
+.btn:disabled{background:var(--linea);color:var(--hueso-dim);cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1px solid var(--linea);color:var(--hueso-dim);padding:8px 14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.04em;border-radius:2px;cursor:pointer;}
+.btn-ghost:hover{border-color:var(--dorado);color:var(--hueso);}
+.btn-icon{background:transparent;border:none;color:var(--rojo-alerta);cursor:pointer;font-size:16px;padding:2px 6px;}
+
+/* cotizacion */
+.cotiz-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.cotiz-valor{font-size:22px;color:var(--dorado);}
+.cotiz-meta{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--hueso-dim);opacity:0.6;}
+.cotiz-manual{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.cotiz-manual input{width:90px;}
+
+/* referencias */
+.ref-card{border:1px solid var(--linea);border-radius:2px;padding:16px;margin-bottom:12px;background:var(--carbon);}
+.ref-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.ref-title{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:var(--hueso-dim);}
+.ref-title a{color:var(--dorado);text-decoration:none;}
+.ref-title a:hover{text-decoration:underline;}
+.ref-dir{font-size:14.5px;margin-top:2px;}
+.ref-datos{display:flex;gap:18px;flex-wrap:wrap;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:var(--hueso-dim);margin-bottom:10px;}
+.ref-datos b{color:var(--hueso);font-weight:600;}
+.ref-calc{background:var(--carbon-2);border:1px solid var(--linea);border-radius:2px;padding:10px 12px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;}
+.ref-calc .rate{color:var(--dorado);font-size:15px;}
+.badge-pendiente{color:var(--rojo-alerta);font-size:11px;}
+.badge-ok{color:var(--verde-ok);font-size:11px;}
+
+/* buscador */
+#buscadorPanel{display:none;margin-top:12px;border-top:1px solid var(--linea);padding-top:14px;}
+.modo-toggle{display:flex;gap:1px;background:var(--linea);border:1px solid var(--linea);border-radius:2px;overflow:hidden;width:fit-content;margin-bottom:14px;}
+.modo-btn{background:var(--carbon);color:var(--hueso-dim);border:none;padding:8px 14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;letter-spacing:0.04em;cursor:pointer;}
+.modo-btn.active{background:var(--dorado);color:var(--carbon);font-weight:700;}
+.multiselect{position:relative;}
+.ms-trigger{width:100%;background:var(--carbon);border:1px solid var(--linea);color:var(--hueso);padding:9px 10px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;border-radius:2px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.ms-trigger:hover{border-color:var(--dorado-soft);}
+.ms-trigger .ms-caret{color:var(--dorado);font-size:11px;}
+#msTriggerText{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.ms-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--carbon-2);border:1px solid var(--dorado-soft);border-radius:2px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.ms-panel.open{display:block;}
+.ms-panel input{width:100%;border:none;border-bottom:1px solid var(--linea);border-radius:0;background:transparent;}
+.ms-list{max-height:220px;overflow-y:auto;padding:6px 0;}
+.ms-opt{display:flex;align-items:center;gap:10px;padding:8px 14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;cursor:pointer;color:var(--hueso-dim);}
+.ms-opt:hover{background:var(--carbon);color:var(--hueso);}
+.ms-opt input{width:14px;height:14px;accent-color:var(--dorado);flex:none;padding:0;}
+.ms-opt.checked{color:var(--hueso);}
+.ms-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.ms-chip{display:flex;align-items:center;gap:6px;background:var(--carbon);border:1px solid var(--dorado-soft);color:var(--hueso);padding:4px 8px 4px 10px;border-radius:12px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;}
+.ms-chip button{background:none;border:none;color:var(--dorado);cursor:pointer;font-size:13px;line-height:1;padding:0;}
+#mapaBusqueda{height:340px;border:1px solid var(--linea);border-radius:2px;}
+.mapa-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.75;}
+#resultadosBusqueda{max-height:420px;overflow-y:auto;margin-top:10px;}
+.res-row{display:flex;align-items:stretch;gap:14px;padding:10px 6px 10px 14px;border-bottom:1px solid var(--linea);position:relative;font-family:'Helvetica Neue',Arial,sans-serif;}
+.res-row::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--recencia,var(--dorado));}
+.res-row .main{flex:1;min-width:0;}
+.res-row .dir{color:var(--hueso);font-size:13px;line-height:1.3;}
+.res-row .dir .barrio{color:var(--hueso-dim);opacity:0.65;font-size:11.5px;}
+.res-row .meta{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;}
+.pill{font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;padding:2px 7px;border-radius:9px;font-weight:600;white-space:nowrap;}
+.pill-unidad{background:rgba(122,155,118,0.15);color:var(--verde-ok);}
+.pill-casa{background:rgba(183,161,101,0.15);color:var(--dorado);}
+.pill-terreno{background:rgba(192,101,79,0.15);color:var(--rojo-alerta);}
+.pill-otro{background:rgba(232,227,216,0.08);color:var(--hueso-dim);}
+.res-row .idfecha{font-size:11px;color:var(--hueso-dim);opacity:0.55;font-variant-numeric:tabular-nums;}
+.res-row .side{text-align:right;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:100px;}
+.res-row .m2rate{color:var(--dorado);font-size:15px;font-variant-numeric:tabular-nums;}
+.res-row .m2rate small{color:var(--hueso-dim);opacity:0.5;font-size:10px;text-transform:none;letter-spacing:0;}
+.res-row .total{color:var(--hueso-dim);opacity:0.6;font-size:10.5px;font-variant-numeric:tabular-nums;}
+.res-row .btn-ghost{margin-top:6px;align-self:flex-end;padding:5px 10px;font-size:10px;}
+.res-group-head{cursor:pointer;}
+.res-group-head .chevron{color:var(--dorado);font-size:10.5px;margin-left:6px;}
+.res-group-children .res-row{padding-left:30px;background:rgba(0,0,0,0.15);}
+.res-group-children .res-row::before{opacity:0.3;width:2px;}
+.res-group-children .res-row .dir{font-size:12.5px;opacity:0.85;}
+
+.promedio-box{text-align:center;padding:14px 0 4px;}
+.promedio-box .label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.65;margin-bottom:6px;}
+.promedio-box .valor{font-size:30px;color:var(--dorado);}
+.promedio-box .sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.6;margin-top:4px;}
+
+/* resultado final */
+.headline{text-align:center;padding:6px 0 22px;}
+.headline .label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.65;margin-bottom:8px;}
+.headline .valor{font-size:40px;color:var(--dorado);}
+.headline .valor-gs{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--hueso-dim);margin-top:6px;}
+.breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--linea);border:1px solid var(--linea);margin-bottom:20px;}
+.breakdown .cell{background:var(--carbon-2);padding:14px 16px;}
+.breakdown .cell .k{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.6;margin-bottom:5px;}
+.breakdown .cell .v{font-size:17px;}
+table.cierre{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;}
+table.cierre th{text-align:left;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dorado);border-bottom:1px solid var(--linea);padding:8px 10px;font-weight:600;}
+table.cierre td{padding:8px 10px;border-bottom:1px solid var(--linea);color:var(--hueso-dim);}
+table.cierre tr.neto td{color:var(--hueso);font-weight:700;border-top:2px solid var(--dorado);}
+td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--hueso);}
+#msg{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;color:var(--rojo-alerta);margin-top:10px;}
+.footnote{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--hueso-dim);opacity:0.5;line-height:1.6;margin-top:10px;}
+
+/* modo cliente / vista de presentación */
+body.modo-cliente .masthead,
+body.modo-cliente .panel:not(#panelPresentacion){display:none !important;}
+#panelPresentacion{display:none;max-width:760px;margin:0 auto;}
+body.modo-cliente #panelPresentacion{display:block;}
+.pres-header{text-align:center;border-bottom:1px solid var(--linea);padding-bottom:20px;margin-bottom:24px;}
+.logo-c21{height:44px;display:block;margin:0 auto 14px;filter:invert(1) brightness(0.92) sepia(0.2);}
+.pres-title{font-size:24px;font-weight:400;margin:4px 0;}
+.pres-direccion{font-size:16px;color:var(--hueso-dim);}
+.pres-meta{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.7;margin-top:8px;}
+.pres-actions{display:flex;justify-content:center;gap:12px;margin-top:26px;}
+.comparables-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;font-family:'Helvetica Neue',Arial,sans-serif;}
+.comparable-card{background:var(--carbon-2);border:1px solid var(--linea);border-radius:3px;overflow:hidden;}
+.comparable-card .map-link{display:block;position:relative;height:120px;background:var(--linea);text-decoration:none;color:inherit;}
+.comparable-card .map-img{width:100%;height:100%;display:block;object-fit:cover;filter:grayscale(0.3) sepia(0.15) brightness(0.75);}
+.comparable-card .map-pin{position:absolute;left:50%;top:50%;width:10px;height:10px;background:var(--dorado);border:2px solid var(--hueso);border-radius:50% 50% 50% 0;transform:translate(-50%,-100%) rotate(-45deg);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
+.comparable-card .body{padding:12px 14px;}
+.comparable-card .c-dir{color:var(--hueso);font-size:13.5px;margin-top:6px;}
+.comparable-card .c-barrio{color:var(--hueso-dim);opacity:0.6;font-size:11.5px;}
+.comparable-card .c-fecha-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;color:var(--hueso);}
+.comparable-card .dias-badge{font-size:10px;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;border-radius:9px;background:rgba(122,155,118,0.15);color:var(--verde-ok);white-space:nowrap;}
+.comparable-card .c-precio{color:var(--dorado);font-size:18px;margin-top:6px;}
+.comparable-card .c-datos{color:var(--hueso-dim);opacity:0.6;font-size:11px;margin-top:2px;}
+
+@media(max-width:640px){.grid2,.grid3,.grid4,.breakdown,.comparables-grid{grid-template-columns:1fr;}.headline .valor{font-size:30px;}.pres-actions{flex-direction:column;}}
+
+@media print{
+  body.modo-cliente .masthead,
+  body.modo-cliente .panel:not(#panelPresentacion),
+  body.modo-cliente .pres-actions{display:none !important;}
+  body.modo-cliente{background:#FAF8F4;color:#1C1A17;}
+  body.modo-cliente #panelPresentacion{background:#fff;border:none;box-shadow:none;color:#1C1A17;}
+  body.modo-cliente #panelPresentacion *{color:#1C1A17 !important;border-color:#ccc !important;}
+  body.modo-cliente #panelPresentacion .valor,
+  body.modo-cliente #panelPresentacion .c-precio{color:#8f7f4f !important;}
+  body.modo-cliente .logo-c21{filter:none !important;}
+  body.modo-cliente #panelPresentacion .breakdown,
+  body.modo-cliente #panelPresentacion .breakdown .cell,
+  body.modo-cliente #panelPresentacion .comparable-card,
+  body.modo-cliente #panelPresentacion .comparable-card .map-link{background:#fff !important;}
+  body.modo-cliente #panelPresentacion .map-img{filter:none !important;}
+  body.modo-cliente #panelPresentacion .footnote,
+  body.modo-cliente #panelPresentacion .pres-meta,
+  body.modo-cliente #panelPresentacion .headline .label,
+  body.modo-cliente #panelPresentacion .breakdown .cell .k{opacity:1 !important;}
+  body.modo-cliente #panelPresentacion .comparable-card,
+  body.modo-cliente #panelPresentacion table.cierre{page-break-inside:avoid;}
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+</head>
+<body>
+<div id="cargandoOverlay" style="position:fixed;inset:0;background:#1C1A17;color:#B7A165;display:flex;align-items:center;justify-content:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;z-index:999;">Cargando datos desde GitHub…</div>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>Armador de <em>AMC</em></h1>
+    <div class="tag">Century 21 White · Terreno separado de construcción</div>
+  </div>
+
+  <div class="panel">
+    <h2>Cotización del día</h2>
+    <div class="cotiz-row">
+      <div>
+        <div class="cotiz-valor" id="cotizValor">Cargando…</div>
+        <div class="cotiz-meta" id="cotizMeta"></div>
+      </div>
+      <button class="btn-ghost" id="btnActualizarCotiz">Actualizar</button>
+      <div class="cotiz-manual">
+        <label style="opacity:1;">Gs/USD manual</label>
+        <input type="number" id="cotizManual" placeholder="ej. 6100">
+        <button class="btn-ghost" id="btnUsarManual">Usar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>
+      Referencias
+      <button class="btn-ghost" id="btnAgregarRef" style="text-transform:none;letter-spacing:0;">+ Agregar referencia</button>
+    </h2>
+
+    <div id="buscadorPanel">
+      <div class="modo-toggle">
+        <button type="button" class="modo-btn active" id="modoBarrioBtn">Por barrio</button>
+        <button type="button" class="modo-btn" id="modoMapaBtn">Dibujar en el mapa</button>
+      </div>
+
+      <div id="mapaBusquedaWrap" style="display:none;margin-bottom:14px;">
+        <div id="mapaBusqueda"></div>
+        <div class="mapa-toolbar">
+          <span id="mapaEstado">Usá el ícono de polígono (⬠) o círculo en el mapa para delimitar la zona.</span>
+          <button type="button" class="btn-ghost" id="btnLimpiarMapa">Borrar dibujo</button>
+        </div>
+      </div>
+
+      <div class="grid4">
+        <div class="field" id="campoBarrioMulti">
+          <label>Barrio / Ciudad (elegí uno o varios)</label>
+          <div class="multiselect" id="barrioMulti">
+            <button type="button" class="ms-trigger" id="msTrigger">
+              <span id="msTriggerText">Todos</span>
+              <span class="ms-caret">▾</span>
+            </button>
+            <div class="ms-panel" id="msPanel">
+              <input type="text" id="msSearch" placeholder="Buscar barrio…" autocomplete="off">
+              <div class="ms-list" id="msList"></div>
+            </div>
+          </div>
+          <div class="ms-chips" id="msChips"></div>
+        </div>
+        <div class="field"><label>Tipo</label><select id="buscarTipo"></select></div>
+        <div class="field"><label>Subtipo</label><select id="buscarSubtipo"></select></div>
+        <div class="field"><label>Antigüedad</label><select id="buscarAntiguedad">
+          <option value="12">Últimos 12 meses</option>
+          <option value="18" selected>Últimos 18 meses</option>
+          <option value="24">Últimos 24 meses</option>
+        </select></div>
+      </div>
+      <div class="field" style="margin-top:12px;"><label>Buscar por ID o dirección (opcional)</label><input type="text" id="buscarTexto" placeholder="ej. 36726 o Terrenos Luque"></div>
+      <div id="resultadosBusqueda"></div>
+    </div>
+
+    <div id="listaReferencias"></div>
+
+    <div class="promedio-box" id="promedioBox" style="display:none;">
+      <div class="label">Promedio $/m² de terreno</div>
+      <div class="valor" id="promedioValor">—</div>
+      <div class="sub" id="promedioSub"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Propiedad a tasar</h2>
+    <div class="grid3">
+      <div class="field"><label>M² terreno</label><input type="number" id="subM2t" placeholder="ej. 360"></div>
+      <div class="field"><label>M² construidos (opcional)</label><input type="number" id="subM2c" placeholder="ej. 200"></div>
+      <div class="field"><label>Gs./m² construcción (tu estimación)</label><input type="number" id="subRateConstr" placeholder="ej. 2.800.000"></div>
+    </div>
+    <div class="grid3" style="margin-top:14px;">
+      <div class="field"><label>Fecha de evaluación</label><input type="date" id="subFechaEval"></div>
+      <div class="field"><label>Extra (opcional, ej. piscina)</label><input type="text" id="extraNombre" placeholder="ej. Piscina"></div>
+      <div class="field"><label>M² del extra</label><input type="number" id="extraM2" placeholder="ej. 22"></div>
+    </div>
+    <div class="grid3" style="margin-top:14px;">
+      <div class="field"><label>Gs./m² del extra</label><input type="number" id="extraRate" placeholder="ej. 1.500.000"></div>
+    </div>
+    <div class="grid3" style="margin-top:14px;">
+      <div class="field"><label>Dirección de la propiedad (opcional)</label><input type="text" id="presDireccion" placeholder="ej. Av. San Martín 1234, Asunción"></div>
+      <div class="field"><label>Preparado para (opcional)</label><input type="text" id="presCliente" placeholder="ej. Familia Benítez"></div>
+      <div class="field"><label>Asesor responsable (opcional)</label><input type="text" id="presAsesor" placeholder="ej. Tu nombre"></div>
+    </div>
+    <button class="btn" id="btnCalcular" style="margin-top:18px;">Calcular tasación</button>
+    <div id="msg"></div>
+  </div>
+
+  <div class="panel" id="resultadoPanel" style="display:none;">
+    <h2>Resultado <button class="btn-ghost" id="btnVerPresentacion" style="text-transform:none;letter-spacing:0;">Ver presentación →</button></h2>
+    <div class="headline">
+      <div class="label">Precio real de mercado estimado</div>
+      <div class="valor" id="totalUsd">—</div>
+      <div class="valor-gs" id="totalGs"></div>
+    </div>
+    <div class="breakdown">
+      <div class="cell"><div class="k">Valor terreno</div><div class="v" id="valorTerrenoOut">—</div></div>
+      <div class="cell"><div class="k">Valor construcción</div><div class="v" id="valorConstrOut">—</div></div>
+      <div class="cell"><div class="k">Valor extra</div><div class="v" id="valorExtraOut">—</div></div>
+    </div>
+    <h2 style="margin-top:0;">Gastos de cierre</h2>
+    <table class="cierre">
+      <thead><tr><th></th><th style="text-align:right">USD</th><th style="text-align:right">Gs.</th></tr></thead>
+      <tbody id="tablaCierre"></tbody>
+    </table>
+    <div class="footnote" id="footnoteFinal"></div>
+  </div>
+
+  <div class="panel" id="panelPresentacion">
+    <div class="pres-header">
+      <img class="logo-c21" id="presLogo" alt="Century 21 White">
+      <h1 class="pres-title">Tasación de mercado</h1>
+      <div class="pres-direccion" id="presOutDireccion"></div>
+      <div class="pres-meta" id="presOutMeta"></div>
+    </div>
+    <div class="headline">
+      <div class="label">Precio real de mercado estimado</div>
+      <div class="valor" id="presTotalUsd">—</div>
+      <div class="valor-gs" id="presTotalGs"></div>
+    </div>
+    <div class="breakdown">
+      <div class="cell"><div class="k">Valor terreno</div><div class="v" id="presValorTerreno">—</div></div>
+      <div class="cell"><div class="k">Valor construcción</div><div class="v" id="presValorConstr">—</div></div>
+      <div class="cell"><div class="k">Valor extra</div><div class="v" id="presValorExtra">—</div></div>
+    </div>
+    <h2>Respaldo de mercado</h2>
+    <div class="comparables-grid" id="presComparables"></div>
+    <div class="footnote" style="margin-top:-12px;">Mapas &copy; colaboradores de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener" style="color:inherit;">OpenStreetMap</a></div>
+    <h2>Gastos de cierre</h2>
+    <table class="cierre">
+      <thead><tr><th></th><th style="text-align:right">USD</th><th style="text-align:right">Gs.</th></tr></thead>
+      <tbody id="presTablaCierre"></tbody>
+    </table>
+    <div class="footnote" id="presFootnote"></div>
+    <div class="pres-actions">
+      <button class="btn-ghost" id="btnVolverEditar">← Volver a editar</button>
+      <button class="btn" id="btnImprimir">Imprimir / Guardar PDF</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let DATA = [];
+// Base64-encoded from assets/logo-c21-white.png — regenerate that encoding if the logo image ever changes.
+const LOGO_C21_BASE64 = "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";
+async function _init(){
+  const overlay = document.getElementById('cargandoOverlay');
+  try{
+    const resp = await fetch('https://raw.githubusercontent.com/waldofer/c21-cerradas-data/main/data/cerradas.json');
+    // px = precio dudoso (posible Gs cargado como USD), pendiente de revision manual: no se usa para tasar.
+    DATA = (await resp.json()).filter(d => !d.px);
+  } catch(e){
+    document.body.innerHTML = '<div style="padding:40px;font-family:Helvetica,Arial,sans-serif;color:#c0654f;">No se pudo cargar el dataset desde GitHub. Revisá tu conexión o que el repo c21-cerradas-data exista y sea público.</div>';
+    return;
+  }
+  if(overlay) overlay.style.display='none';
+
+const tiposLabel = {habitacional:'Habitacional', comercial:'Comercial', rural:'Rural'};
+
+const UNIT_SUBTYPES = new Set(['departamento','departamento-en-pozo','penthouse','oficinas','estacionamiento']);
+const CASA_SUBTYPES = new Set(['casa','casa-duplex','casa-en-condominio','quinta','rancho','estancia']);
+
+function familiaSubtipo(su){
+  if(UNIT_SUBTYPES.has(su)) return 'unidad';
+  if(CASA_SUBTYPES.has(su)) return 'casa';
+  if(su==='terreno') return 'terreno';
+  return 'otro';
+}
+
+function tituloCase(str){
+  if(!str) return str;
+  return str.toLowerCase().replace(/(^|[\s\-.,])([a-záéíóúñ])/g, (m,pre,c)=> pre+c.toUpperCase());
+}
+
+function colorRecencia(fc){
+  const dias = Math.round((new Date() - new Date(fc+'T12:00:00')) / (1000*60*60*24));
+  if(dias<=90) return 'var(--dorado)';
+  if(dias<=270) return 'var(--dorado-soft)';
+  return '#5a5343';
+}
+
+function filaResultadoHtml(d){
+  const familia = familiaSubtipo(d.su);
+  const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:tituloCase(d.su.replace(/-/g,' '))}[familia];
+  const base = UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
+  const rate = (base && base>0) ? Math.round(d.pr/base) : null;
+  const etiquetaM2 = UNIT_SUBTYPES.has(d.su) ? 'm² propio' : 'm²';
+  return `
+    <div class="res-row" style="--recencia:${colorRecencia(d.fc)}">
+      <div class="main">
+        <div class="dir">${tituloCase(d.dir)||'(sin dirección)'} <span class="barrio">— ${d.mu}</span></div>
+        <div class="meta">
+          <span class="pill pill-${familia}">${pillLabel}</span>
+          <span class="idfecha">ID ${d.id} · ${d.fc}</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="m2rate">${rate!==null ? '$'+rate.toLocaleString('es-PY') : '—'}<small>${rate!==null ? ' /'+etiquetaM2 : ''}</small></div>
+        <div class="total">USD ${Math.round(d.pr).toLocaleString('es-PY')} · ${base||'—'} ${etiquetaM2}</div>
+        <button class="btn-ghost" data-id="${d.id}">Agregar</button>
+      </div>
+    </div>`;
+}
+
+function claveAgrupacion(d){
+  return d.mu + '|' + (d.dir||'').trim().toLowerCase() + '|' + d.su;
+}
+
+function agruparConsecutivos(lista){
+  const grupos = [];
+  for(const d of lista){
+    const ultimo = grupos[grupos.length-1];
+    if(ultimo && claveAgrupacion(ultimo.items[0])===claveAgrupacion(d)){
+      ultimo.items.push(d);
+    } else {
+      grupos.push({items:[d]});
+    }
+  }
+  return grupos;
+}
+
+function grupoResumenHtml(items, grupoId){
+  const d0 = items[0];
+  const familia = familiaSubtipo(d0.su);
+  const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:tituloCase(d0.su.replace(/-/g,' '))}[familia];
+  const baseDe = (d)=> UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
+  const base = baseDe(d0);
+  const etiquetaM2 = UNIT_SUBTYPES.has(d0.su) ? 'm² propio' : 'm²';
+  const uniformePrecio = items.every(x=>x.pr===d0.pr);
+  const uniformeBase = items.every(x=>baseDe(x)===base);
+  const rates = items.map(x=>{ const b=baseDe(x); return (b && b>0) ? Math.round(x.pr/b) : null; }).filter(r=>r!==null);
+  let m2rateHtml;
+  if(rates.length===0){
+    m2rateHtml = '—';
+  } else {
+    const min = Math.min(...rates), max = Math.max(...rates);
+    const esUniforme = uniformePrecio && uniformeBase;
+    if(esUniforme || min===max){
+      m2rateHtml = `$${min.toLocaleString('es-PY')}<small> /${etiquetaM2}${esUniforme?' c/u':''}</small>`;
+    } else {
+      m2rateHtml = `$${min.toLocaleString('es-PY')}&ndash;${max.toLocaleString('es-PY')}<small> /${etiquetaM2}</small>`;
+    }
+  }
+  const totalHtml = uniformePrecio ? 'USD '+Math.round(d0.pr).toLocaleString('es-PY')+' c/u' : 'Precios varían';
+  const areaHtml = uniformeBase ? `${base||'—'} ${etiquetaM2}` : `${etiquetaM2} varían`;
+  const fechas = items.map(x=>x.fc).sort();
+  const fechaMasVieja = fechas[0], fechaMasNueva = fechas[fechas.length-1];
+  const uniformeFecha = fechaMasVieja === fechaMasNueva;
+  const fechaTexto = uniformeFecha ? d0.fc : `${fechaMasVieja} a ${fechaMasNueva}`;
+  return `
+    <div class="res-row res-group-head" style="--recencia:${colorRecencia(fechaMasVieja)}" data-grupo="${grupoId}">
+      <div class="main">
+        <div class="dir">${tituloCase(d0.dir)||'(sin dirección)'} <span class="barrio">— ${d0.mu}</span></div>
+        <div class="meta">
+          <span class="pill pill-${familia}">${pillLabel}</span>
+          <span class="idfecha">${items.length} lotes · ${fechaTexto}</span> <span class="chevron">▾ Ver los ${items.length} lotes</span>
+        </div>
+      </div>
+      <div class="side">
+        <div class="m2rate">${m2rateHtml}</div>
+        <div class="total">${totalHtml} · ${areaHtml}</div>
+      </div>
+    </div>
+    <div class="res-group-children" id="grupo-${grupoId}" style="display:none;">
+      ${items.map(filaResultadoHtml).join('')}
+    </div>`;
+}
+
+// ---------- Cotización Gs/USD (histórica, por fecha) ----------
+let cotizacion = null; // Gs por USD - cotización de HOY (para mostrar arriba)
+const cotizValor = document.getElementById('cotizValor');
+const cotizMeta = document.getElementById('cotizMeta');
+const cacheCotizaciones = {};
+
+function hoyStr(){
+  return new Date().toISOString().slice(0,10);
+}
+
+async function obtenerCotizacionFecha(fechaStr){
+  if(cacheCotizaciones[fechaStr] !== undefined) return cacheCotizaciones[fechaStr];
+  const base = new Date(fechaStr+'T12:00:00');
+  for(let intento=0; intento<6; intento++){
+    const d = new Date(base);
+    d.setDate(d.getDate()-intento);
+    const fStr = d.toISOString().slice(0,10);
+    const urls = [
+      `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${fStr}/v1/currencies/usd.json`,
+      `https://${fStr}.currency-api.pages.dev/v1/currencies/usd.json`
+    ];
+    for(const url of urls){
+      try{
+        const resp = await fetch(url);
+        if(resp.ok){
+          const data = await resp.json();
+          if(data && data.usd && data.usd.pyg){
+            cacheCotizaciones[fechaStr] = data.usd.pyg;
+            return data.usd.pyg;
+          }
+        }
+      } catch(e){ /* probar siguiente */ }
+    }
+  }
+  cacheCotizaciones[fechaStr] = null;
+  return null;
+}
+
+async function cargarCotizacion(){
+  cotizValor.textContent = 'Cargando…';
+  const hoy = hoyStr();
+  const rate = await obtenerCotizacionFecha(hoy);
+  if(rate){
+    cotizacion = rate;
+    cotizValor.textContent = `1 USD = ${Math.round(cotizacion).toLocaleString('es-PY')} Gs.`;
+    cotizMeta.textContent = `Cotización de hoy (${hoy}) · fuente: currency-api (histórico diario)`;
+  } else {
+    cotizacion = 6100;
+    cotizValor.textContent = `1 USD ≈ ${cotizacion.toLocaleString('es-PY')} Gs. (valor por defecto, no se pudo buscar en vivo)`;
+    cotizMeta.textContent = 'Ingresá una cotización manual si preferís mayor precisión.';
+  }
+}
+document.getElementById('btnActualizarCotiz').addEventListener('click', cargarCotizacion);
+document.getElementById('btnUsarManual').addEventListener('click', ()=>{
+  const v = parseFloat(document.getElementById('cotizManual').value);
+  if(v && v>0){
+    cotizacion = v;
+    cotizValor.textContent = `1 USD = ${Math.round(cotizacion).toLocaleString('es-PY')} Gs. (manual)`;
+    cotizMeta.textContent = 'Cotización ingresada manualmente.';
+  }
+});
+cargarCotizacion();
+document.getElementById('subFechaEval').value = hoyStr();
+document.getElementById('subFechaEval').addEventListener('input', ()=>{
+  ejecutarBusqueda();
+  renderReferencias();
+});
+
+
+// ---------- Buscador de referencias ----------
+const btnAgregarRef = document.getElementById('btnAgregarRef');
+const buscadorPanel = document.getElementById('buscadorPanel');
+const buscarTexto = document.getElementById('buscarTexto');
+const buscarTipo = document.getElementById('buscarTipo');
+const buscarSubtipo = document.getElementById('buscarSubtipo');
+const buscarAntiguedad = document.getElementById('buscarAntiguedad');
+const resultadosBusqueda = document.getElementById('resultadosBusqueda');
+
+let antiguedadMeses = parseInt(buscarAntiguedad.value);
+
+function fechaLimiteAntiguedad(){
+  const base = document.getElementById('subFechaEval').value || hoyStr();
+  const d = new Date(base+'T12:00:00');
+  d.setMonth(d.getMonth() - antiguedadMeses);
+  return d;
+}
+
+function poblarFiltrosBusqueda(){
+  const tipos = [...new Set(DATA.map(d=>d.ti))];
+  buscarTipo.innerHTML = '<option value="">Todos</option>' + tipos.map(t=>`<option value="${t}">${tiposLabel[t]||t}</option>`).join('');
+  actualizarSubtiposBusqueda();
+}
+function actualizarSubtiposBusqueda(){
+  const tipo = buscarTipo.value;
+  const subs = [...new Set(DATA.filter(d=>!tipo || d.ti===tipo).map(d=>d.su))].sort((a,b)=>a.localeCompare(b,'es'));
+  buscarSubtipo.innerHTML = '<option value="">Todos</option>' + subs.map(s=>`<option value="${s}">${s.replace(/-/g,' ')}</option>`).join('');
+}
+buscarTipo.addEventListener('change', ()=>{ actualizarSubtiposBusqueda(); ejecutarBusqueda(); });
+buscarAntiguedad.addEventListener('change', ()=>{
+  antiguedadMeses = parseInt(buscarAntiguedad.value);
+  ejecutarBusqueda();
+  renderReferencias();
+});
+poblarFiltrosBusqueda();
+
+btnAgregarRef.addEventListener('click', ()=>{
+  buscadorPanel.style.display = buscadorPanel.style.display==='none' ? 'block' : 'none';
+  if(buscadorPanel.style.display==='block'){
+    if(modoBusqueda==='mapa' && !mapaBusqueda) inicializarMapaBusqueda();
+    ejecutarBusqueda();
+  }
+});
+
+// ---------- Multiselect de barrios ----------
+let municipiosSeleccionados = [];
+function renderMsList(lista){
+  const msList = document.getElementById('msList');
+  msList.innerHTML = lista.map(m=>{
+    const checked = municipiosSeleccionados.includes(m);
+    return `<label class="ms-opt ${checked?'checked':''}">
+      <input type="checkbox" value="${m}" ${checked?'checked':''}>
+      ${m}
+    </label>`;
+  }).join('');
+  msList.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const v = cb.value;
+      if(cb.checked){ if(!municipiosSeleccionados.includes(v)) municipiosSeleccionados.push(v); }
+      else{ municipiosSeleccionados = municipiosSeleccionados.filter(x=>x!==v); }
+      cb.closest('.ms-opt').classList.toggle('checked', cb.checked);
+      renderMsChips();
+      actualizarMsTriggerText();
+      ejecutarBusqueda();
+    });
+  });
+}
+function renderMsChips(){
+  const chips = document.getElementById('msChips');
+  chips.innerHTML = municipiosSeleccionados.map(m=>`<span class="ms-chip">${m}<button type="button" data-m="${m}">×</button></span>`).join('');
+  chips.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      municipiosSeleccionados = municipiosSeleccionados.filter(x=>x!==b.dataset.m);
+      renderMsChips();
+      actualizarMsTriggerText();
+      const cb = document.querySelector(`#msList input[value="${b.dataset.m}"]`);
+      if(cb){ cb.checked=false; cb.closest('.ms-opt').classList.remove('checked'); }
+      ejecutarBusqueda();
+    });
+  });
+}
+function actualizarMsTriggerText(){
+  const t = document.getElementById('msTriggerText');
+  if(municipiosSeleccionados.length===0) t.textContent = 'Todos';
+  else if(municipiosSeleccionados.length===1) t.textContent = municipiosSeleccionados[0];
+  else t.textContent = `${municipiosSeleccionados.length} barrios seleccionados`;
+}
+function inicializarMultiselectBarrios(){
+  const municipios = [...new Set(DATA.map(d=>d.mu))].sort((a,b)=>a.localeCompare(b,'es'));
+  renderMsList(municipios);
+  const trigger = document.getElementById('msTrigger');
+  const panel = document.getElementById('msPanel');
+  const search = document.getElementById('msSearch');
+  trigger.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    panel.classList.toggle('open');
+    if(panel.classList.contains('open')){ search.value=''; renderMsList(municipios); search.focus(); }
+  });
+  document.addEventListener('click', (e)=>{
+    if(!document.getElementById('barrioMulti').contains(e.target)) panel.classList.remove('open');
+  });
+  search.addEventListener('input', ()=>{
+    const q = search.value.trim().toLowerCase();
+    renderMsList(municipios.filter(m=>m.toLowerCase().includes(q)));
+  });
+}
+inicializarMultiselectBarrios();
+
+// ---------- Modo de búsqueda: barrio vs mapa ----------
+let modoBusqueda = 'barrio';
+let mapaBusqueda, capaDibujoBusqueda, areaDibujadaBusqueda = null;
+const modoBarrioBtn = document.getElementById('modoBarrioBtn');
+const modoMapaBtn = document.getElementById('modoMapaBtn');
+const mapaBusquedaWrap = document.getElementById('mapaBusquedaWrap');
+const campoBarrioMulti = document.getElementById('campoBarrioMulti');
+
+modoBarrioBtn.addEventListener('click', ()=>{
+  modoBusqueda = 'barrio';
+  modoBarrioBtn.classList.add('active'); modoMapaBtn.classList.remove('active');
+  mapaBusquedaWrap.style.display = 'none';
+  campoBarrioMulti.style.display = '';
+  ejecutarBusqueda();
+});
+modoMapaBtn.addEventListener('click', ()=>{
+  modoBusqueda = 'mapa';
+  modoMapaBtn.classList.add('active'); modoBarrioBtn.classList.remove('active');
+  mapaBusquedaWrap.style.display = 'block';
+  campoBarrioMulti.style.display = 'none';
+  if(!mapaBusqueda) inicializarMapaBusqueda();
+  setTimeout(()=>mapaBusqueda.invalidateSize(), 50);
+  ejecutarBusqueda();
+});
+
+function inicializarMapaBusqueda(){
+  mapaBusqueda = L.map('mapaBusqueda').setView([-25.30, -57.63], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(mapaBusqueda);
+
+  const capaPuntos = L.layerGroup({renderer:L.canvas()}).addTo(mapaBusqueda);
+  DATA.forEach(d=>{
+    if(d.la && d.lo){
+      L.circleMarker([d.la, d.lo], {radius:3, color:'#B7A165', weight:1, fillColor:'#B7A165', fillOpacity:0.5}).addTo(capaPuntos);
+    }
+  });
+
+  capaDibujoBusqueda = new L.FeatureGroup();
+  mapaBusqueda.addLayer(capaDibujoBusqueda);
+
+  const drawControl = new L.Control.Draw({
+    draw: { polygon:{shapeOptions:{color:'#B7A165',weight:2}}, circle:{shapeOptions:{color:'#B7A165',weight:2}}, polyline:false, rectangle:false, marker:false, circlemarker:false },
+    edit: { featureGroup: capaDibujoBusqueda, remove:false }
+  });
+  mapaBusqueda.addControl(drawControl);
+
+  mapaBusqueda.on(L.Draw.Event.CREATED, function(e){
+    capaDibujoBusqueda.clearLayers();
+    capaDibujoBusqueda.addLayer(e.layer);
+    if(e.layerType==='circle'){
+      areaDibujadaBusqueda = {tipo:'circulo', centro:e.layer.getLatLng(), radio:e.layer.getRadius()};
+    } else {
+      areaDibujadaBusqueda = {tipo:'poligono', puntos: e.layer.getLatLngs()[0].map(p=>[p.lat,p.lng])};
+    }
+    document.getElementById('mapaEstado').textContent = 'Área delimitada — buscando referencias adentro.';
+    ejecutarBusqueda();
+  });
+
+  document.getElementById('btnLimpiarMapa').addEventListener('click', ()=>{
+    capaDibujoBusqueda.clearLayers();
+    areaDibujadaBusqueda = null;
+    document.getElementById('mapaEstado').textContent = 'Usá el ícono de polígono (⬠) o círculo en el mapa para delimitar la zona.';
+    ejecutarBusqueda();
+  });
+}
+
+function puntoEnPoligono(lat, lng, poligono){
+  let dentro = false;
+  for(let i=0, j=poligono.length-1; i<poligono.length; j=i++){
+    const [latI, lngI] = poligono[i];
+    const [latJ, lngJ] = poligono[j];
+    const interseca = ((lngI>lng) !== (lngJ>lng)) && (lat < (latJ-latI) * (lng-lngI) / (lngJ-lngI) + latI);
+    if(interseca) dentro = !dentro;
+  }
+  return dentro;
+}
+function distanciaMetros(lat1, lng1, lat2, lng2){
+  const R = 6371000;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function puntoEnAreaDibujadaBusqueda(lat, lng){
+  if(!areaDibujadaBusqueda || lat==null || lng==null) return false;
+  if(areaDibujadaBusqueda.tipo==='circulo'){
+    const c = areaDibujadaBusqueda.centro;
+    return distanciaMetros(lat, lng, c.lat, c.lng) <= areaDibujadaBusqueda.radio;
+  }
+  return puntoEnPoligono(lat, lng, areaDibujadaBusqueda.puntos);
+}
+
+function ejecutarBusqueda(){
+  const q = buscarTexto.value.trim().toLowerCase();
+  const tipo = buscarTipo.value;
+  const sub = buscarSubtipo.value;
+  const limiteAntiguedad = fechaLimiteAntiguedad();
+
+  if(modoBusqueda==='mapa' && !areaDibujadaBusqueda){
+    resultadosBusqueda.innerHTML = '<div class="m" style="padding:10px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:var(--hueso-dim)">Dibujá una zona en el mapa para ver referencias.</div>';
+    return;
+  }
+
+  function coincideSinVentana(d){
+    if(tipo && d.ti!==tipo) return false;
+    if(sub && d.su!==sub) return false;
+    if(modoBusqueda==='mapa'){
+      if(!puntoEnAreaDibujadaBusqueda(d.la, d.lo)) return false;
+    } else if(municipiosSeleccionados.length>0){
+      if(!municipiosSeleccionados.includes(d.mu)) return false;
+    }
+    if(q){
+      const idMatch = String(d.id).includes(q);
+      const txtMatch = (d.dir||'').toLowerCase().includes(q);
+      if(!idMatch && !txtMatch) return false;
+    }
+    return true;
+  }
+
+  let resultados = DATA.filter(d=> coincideSinVentana(d) && !(new Date(d.fc+'T12:00:00') < limiteAntiguedad));
+  resultados.sort((a,b)=> new Date(b.fc)-new Date(a.fc));
+  const totalCoincidencias = resultados.length;
+  resultados = resultados.slice(0,30);
+
+  const contadorHtml = totalCoincidencias>0
+    ? `<div class="m" style="padding:6px 10px;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.7;">Mostrando ${resultados.length} de ${totalCoincidencias} cierres dentro de los últimos ${antiguedadMeses} meses</div>`
+    : '';
+
+  let mensajeVacio = 'Sin resultados.';
+  if(totalCoincidencias===0 && DATA.some(coincideSinVentana)){
+    mensajeVacio = `Sin resultados en los últimos ${antiguedadMeses} meses — probá ampliar la ventana de antigüedad.`;
+  }
+
+  const grupos = agruparConsecutivos(resultados);
+  const filasHtml = grupos.map((g,i)=> g.items.length>1 ? grupoResumenHtml(g.items, i) : filaResultadoHtml(g.items[0])).join('');
+  resultadosBusqueda.innerHTML = contadorHtml + (filasHtml || `<div class="m" style="padding:10px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:var(--hueso-dim)">${mensajeVacio}</div>`);
+
+  resultadosBusqueda.querySelectorAll('button[data-id]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      agregarReferencia(parseInt(b.dataset.id));
+    });
+  });
+  resultadosBusqueda.querySelectorAll('.res-group-head').forEach(head=>{
+    head.addEventListener('click', ()=>{
+      const children = resultadosBusqueda.querySelector('#grupo-'+head.dataset.grupo);
+      const abierto = children.style.display !== 'none';
+      children.style.display = abierto ? 'none' : 'block';
+      const chevron = head.querySelector('.chevron');
+      chevron.textContent = abierto ? `▾ Ver los ${children.children.length} lotes` : '▴ Ocultar';
+    });
+  });
+}
+[buscarTexto, buscarSubtipo].forEach(el=>el.addEventListener('input', ejecutarBusqueda));
+
+
+// ---------- Referencias seleccionadas ----------
+let referencias = []; // {data, rateConstr (Gs/m², asignado por el usuario), cotizHist (Gs/USD de esa fecha), cotizManual, cargando}
+
+async function agregarReferencia(id){
+  if(referencias.some(r=>r.data.id===id)) return;
+  const d = DATA.find(x=>x.id===id);
+  if(!d) return;
+  const ref = {data:d, rateConstr: null, cotizHist: undefined, cotizManual: null, cargando: true};
+  referencias.push(ref);
+  renderReferencias();
+  const rate = await obtenerCotizacionFecha(d.fc);
+  ref.cotizHist = rate; // puede ser null si no se pudo obtener
+  ref.cargando = false;
+  renderReferencias();
+}
+
+function quitarReferencia(id){
+  referencias = referencias.filter(r=>r.data.id!==id);
+  renderReferencias();
+}
+
+function fmtUSD(n){return 'USD ' + Math.round(n).toLocaleString('es-PY');}
+function fmtGs(n){return Math.round(n).toLocaleString('es-PY') + ' Gs.';}
+
+function tileUrlDe(lat, lon, zoom){
+  const n = Math.pow(2, zoom);
+  const x = Math.floor((lon + 180) / 360 * n);
+  const latRad = lat * Math.PI / 180;
+  const y = Math.floor((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n);
+  return `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`;
+}
+function filaCierreHtml(f){return `<tr class="${f.neto?'neto':''}"><td>${f.k}</td><td class="num">${fmtUSD(f.usd)}</td><td class="num">${fmtGs(f.gs)}</td></tr>`;}
+
+function cotizacionDeReferencia(ref){
+  return ref.cotizManual || ref.cotizHist || null;
+}
+
+// Devuelve el $/m² de terreno EN GUARANÍES para una referencia, o null si falta info
+function calcularRateTerrenoGs(ref){
+  const d = ref.data;
+  const cotiz = cotizacionDeReferencia(ref);
+  if(!cotiz) return null; // todavía no tenemos cotización histórica de esa fecha
+  const precioGs = d.pr * cotiz;
+  if(!d.mc || d.mc<=0) return precioGs / d.mt; // referencia de terreno puro
+  if(ref.rateConstr===null || ref.rateConstr===undefined || isNaN(ref.rateConstr)) return null; // falta que el usuario asigne construcción
+  const valorConstrGs = ref.rateConstr * d.mc;
+  const valorTerrenoGs = precioGs - valorConstrGs;
+  if(valorTerrenoGs<=0) return null;
+  return valorTerrenoGs / d.mt;
+}
+
+function renderReferencias(){
+  const cont = document.getElementById('listaReferencias');
+  const limiteAntiguedad = fechaLimiteAntiguedad();
+  cont.innerHTML = referencias.map(ref=>{
+    const d = ref.data;
+    const esTerrenoPuro = !d.mc || d.mc<=0;
+    const cotiz = cotizacionDeReferencia(ref);
+    const fueraDeVentana = new Date(d.fc+'T12:00:00') < limiteAntiguedad;
+
+    let cotizHtml = '';
+    if(ref.cargando){
+      cotizHtml = `<div class="ref-calc"><span class="badge-pendiente">Buscando cotización histórica del ${d.fc}…</span></div>`;
+    } else if(!cotiz){
+      cotizHtml = `
+        <div class="grid2">
+          <div class="field">
+            <label>No se pudo obtener la cotización del ${d.fc} — ingresala a mano (Gs/USD)</label>
+            <input type="number" data-cotizid="${d.id}" class="input-cotiz-manual" value="${ref.cotizManual ?? ''}" placeholder="ej. 7200">
+          </div>
+        </div>`;
+    } else {
+      cotizHtml = `<div class="footnote" style="margin-top:0;">Cotización del ${d.fc}: 1 USD = ${Math.round(cotiz).toLocaleString('es-PY')} Gs.${ref.cotizManual ? ' (manual)' : ''} → Precio: ${fmtGs(d.pr*cotiz)}</div>`;
+    }
+
+    const rateTerrenoGs = calcularRateTerrenoGs(ref);
+    let calcHtml = '';
+    if(cotiz){
+      if(esTerrenoPuro){
+        calcHtml = `<div class="ref-calc">Terreno puro (sin construcción) → <span class="rate">${rateTerrenoGs!==null ? Math.round(rateTerrenoGs).toLocaleString('es-PY') : '—'} Gs./m²</span> de terreno directo</div>`;
+      } else {
+        calcHtml = `
+          <div class="grid2">
+            <div class="field">
+              <label>Gs./m² construcción que le asignás a esta referencia</label>
+              <input type="number" data-refid="${d.id}" class="input-rate-constr" value="${ref.rateConstr ?? ''}" placeholder="ej. 2.800.000">
+            </div>
+            <div class="ref-calc">
+              ${rateTerrenoGs!==null
+                ? `Gs./m² terreno resultante → <span class="rate">${Math.round(rateTerrenoGs).toLocaleString('es-PY')} Gs./m²</span> <span class="badge-ok">✓ usado en el promedio</span>`
+                : `<span class="badge-pendiente">Ingresá el Gs./m² de construcción para calcular el terreno de esta referencia</span>`}
+            </div>
+          </div>`;
+      }
+    }
+
+    return `
+      <div class="ref-card">
+        <div class="ref-head">
+          <div>
+            <div class="ref-title"><a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener">ID ${d.id}</a> · ${d.fc}</div>
+            <div class="ref-dir">${d.dir || '(sin dirección)'}</div>
+          </div>
+          <button class="btn-icon" data-remove="${d.id}" title="Quitar">×</button>
+        </div>
+        <div class="ref-datos">
+          <span>Barrio: <b>${d.mu}</b></span>
+          <span>Subtipo: <b>${d.su.replace(/-/g,' ')}</b></span>
+          <span>M² terreno: <b>${d.mt}</b></span>
+          ${d.mc ? `<span>M² construidos: <b>${d.mc}</b></span>` : ''}
+          <span>Precio: <b>${fmtUSD(d.pr)}</b></span>
+        </div>
+        ${fueraDeVentana ? `<div class="footnote" style="margin-top:0;"><span class="badge-pendiente">⚠ Fuera de la ventana de antigüedad actual (${antiguedadMeses} meses)</span></div>` : ''}
+        ${cotizHtml}
+        ${calcHtml}
+      </div>`;
+  }).join('');
+
+  cont.querySelectorAll('button[data-remove]').forEach(b=>{
+    b.addEventListener('click', ()=>quitarReferencia(parseInt(b.dataset.remove)));
+  });
+  cont.querySelectorAll('.input-rate-constr').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const id = parseInt(inp.dataset.refid);
+      const ref = referencias.find(r=>r.data.id===id);
+      ref.rateConstr = inp.value === '' ? null : parseFloat(inp.value);
+      renderReferencias();
+    });
+  });
+  cont.querySelectorAll('.input-cotiz-manual').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const id = parseInt(inp.dataset.cotizid);
+      const ref = referencias.find(r=>r.data.id===id);
+      ref.cotizManual = inp.value === '' ? null : parseFloat(inp.value);
+      renderReferencias();
+    });
+  });
+
+  actualizarPromedio();
+}
+
+function actualizarPromedio(){
+  const box = document.getElementById('promedioBox');
+  const rates = referencias.map(calcularRateTerrenoGs).filter(r=>r!==null && !isNaN(r));
+  if(rates.length===0){
+    box.style.display='none';
+    return;
+  }
+  const prom = rates.reduce((a,b)=>a+b,0)/rates.length;
+  box.style.display='block';
+  document.getElementById('promedioValor').textContent = `${Math.round(prom).toLocaleString('es-PY')} Gs./m²`;
+  document.getElementById('promedioSub').textContent = `Calculado con ${rates.length} de ${referencias.length} referencia(s)${referencias.length>rates.length ? ' (faltan datos en las demás)' : ''}`;
+}
+
+// ---------- Vista de presentación ----------
+document.getElementById('presLogo').src = 'data:image/png;base64,' + LOGO_C21_BASE64;
+
+let ultimoResultado = null;
+
+function renderComparables(list){
+  const cont = document.getElementById('presComparables');
+  if(!list.length){
+    cont.innerHTML = '';
+    return;
+  }
+  cont.innerHTML = list.map(c=>{
+    const familia = familiaSubtipo(c.su);
+    const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:tituloCase(c.su.replace(/-/g,' '))}[familia];
+    const base = UNIT_SUBTYPES.has(c.su) ? c.mc : c.mt;
+    const rate = (base && base>0) ? Math.round(c.pr/base) : null;
+    const etiquetaM2 = UNIT_SUBTYPES.has(c.su) ? 'm² propio' : 'm²';
+
+    let diasHtml = '';
+    if(c.fa){
+      const dias = Math.round((new Date(c.fc+'T12:00:00') - new Date(c.fa+'T12:00:00')) / (1000*60*60*24));
+      if(dias>0) diasHtml = `<span class="dias-badge">vendido en ${dias.toLocaleString('es-PY')} días</span>`;
+    }
+
+    let mapaHtml = '';
+    if(c.la!=null && c.lo!=null){
+      mapaHtml = `
+      <a class="map-link" href="https://www.google.com/maps?q=${c.la},${c.lo}" target="_blank" rel="noopener" aria-label="Ver ubicación en Google Maps">
+        <img class="map-img" src="${tileUrlDe(c.la, c.lo, 16)}" alt="" onerror="this.remove()">
+        <div class="map-pin"></div>
+      </a>`;
+    }
+
+    const datosTexto = rate!==null
+      ? `${base} ${etiquetaM2} · $${rate.toLocaleString('es-PY')} /${etiquetaM2}`
+      : `${base || '—'} ${etiquetaM2}`;
+
+    return `
+      <div class="comparable-card">
+        ${mapaHtml}
+        <div class="body">
+          <span class="pill pill-${familia}">${pillLabel}</span>
+          <div class="c-dir">${tituloCase(c.dir)||'(sin dirección)'} <span class="c-barrio">— ${c.mu}</span></div>
+          <div class="c-fecha-row"><span>${c.fc}</span>${diasHtml}</div>
+          <div class="c-precio">${fmtUSD(c.pr)}</div>
+          <div class="c-datos">${datosTexto}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderPresentacion(){
+  const r = ultimoResultado;
+  if(!r) return;
+
+  const direccion = document.getElementById('presDireccion').value.trim();
+  const cliente = document.getElementById('presCliente').value.trim();
+  const asesor = document.getElementById('presAsesor').value.trim();
+
+  const outDireccion = document.getElementById('presOutDireccion');
+  outDireccion.textContent = direccion;
+  outDireccion.style.display = direccion ? 'block' : 'none';
+
+  const metaParts = [];
+  if(cliente) metaParts.push(`Preparado para: ${cliente}`);
+  if(asesor) metaParts.push(`Asesor: ${asesor} · Century 21 White`);
+  metaParts.push(`Fecha: ${r.fechaEval}`);
+  document.getElementById('presOutMeta').textContent = metaParts.join(' · ');
+
+  document.getElementById('presTotalUsd').textContent = fmtUSD(r.totalUsd);
+  document.getElementById('presTotalGs').textContent = fmtGs(r.totalGs);
+
+  document.getElementById('presValorTerreno').textContent = fmtGs(r.valorTerrenoGs);
+  document.getElementById('presValorConstr').textContent = r.m2c>0 ? fmtGs(r.valorConstrGs) : 'N/A';
+  document.getElementById('presValorExtra').textContent = r.extraM2>0 ? `${r.extraNombre}: ${fmtGs(r.valorExtraGs)}` : 'N/A';
+
+  document.getElementById('presTablaCierre').innerHTML = r.filasCierre.map(filaCierreHtml).join('');
+
+  document.getElementById('presFootnote').textContent = r.footnote;
+
+  renderComparables(r.comparables);
+}
+
+document.getElementById('btnVerPresentacion').addEventListener('click', ()=>{
+  document.body.classList.add('modo-cliente');
+  renderPresentacion();
+  window.scrollTo(0,0);
+});
+document.getElementById('btnVolverEditar').addEventListener('click', ()=>{
+  document.body.classList.remove('modo-cliente');
+});
+document.getElementById('btnImprimir').addEventListener('click', ()=>{
+  window.print();
+});
+
+// ---------- Cálculo final ----------
+document.getElementById('btnCalcular').addEventListener('click', calcularTasacion);
+
+async function calcularTasacion(){
+  const msg = document.getElementById('msg');
+  const panel = document.getElementById('resultadoPanel');
+  msg.textContent = '';
+  panel.style.display = 'none';
+
+  const rates = referencias.map(calcularRateTerrenoGs).filter(r=>r!==null && !isNaN(r));
+  if(rates.length===0){
+    msg.textContent = 'Agregá al menos una referencia con el Gs./m² de terreno calculado (revisá que todas tengan cotización histórica cargada).';
+    return;
+  }
+  const promRateGs = rates.reduce((a,b)=>a+b,0)/rates.length;
+
+  const m2t = parseFloat(document.getElementById('subM2t').value);
+  const m2c = parseFloat(document.getElementById('subM2c').value) || 0;
+  const rateConstrGs = parseFloat(document.getElementById('subRateConstr').value) || 0;
+  const extraM2 = parseFloat(document.getElementById('extraM2').value) || 0;
+  const extraRateGs = parseFloat(document.getElementById('extraRate').value) || 0;
+  const extraNombre = document.getElementById('extraNombre').value.trim() || 'Extra';
+  const fechaEval = document.getElementById('subFechaEval').value || hoyStr();
+
+  if(!m2t || m2t<=0){
+    msg.textContent = 'Ingresá los m² de terreno de la propiedad a tasar.';
+    return;
+  }
+  if(m2c>0 && !rateConstrGs){
+    msg.textContent = 'La propiedad tiene m² construidos: ingresá el Gs./m² de construcción que le asignás.';
+    return;
+  }
+
+  const btn = document.getElementById('btnCalcular');
+  btn.disabled = true;
+  btn.textContent = 'Buscando cotización de evaluación…';
+  const cotizEval = await obtenerCotizacionFecha(fechaEval);
+  btn.disabled = false;
+  btn.textContent = 'Calcular tasación';
+
+  if(!cotizEval){
+    msg.textContent = `No se pudo obtener la cotización del ${fechaEval}. Probá con otra fecha o esperá y reintentá.`;
+    return;
+  }
+
+  const valorTerrenoGs = m2t * promRateGs;
+  const valorConstrGs = m2c * rateConstrGs;
+  const valorExtraGs = extraM2 * extraRateGs;
+  const totalGs = valorTerrenoGs + valorConstrGs + valorExtraGs;
+  const total = totalGs / cotizEval;
+
+  const comisionGs = totalGs * 0.055;
+  const irpGs = totalGs * 0.024;
+  const escribaniaGs = totalGs * 0.01;
+  const netoGs = totalGs - comisionGs - irpGs - escribaniaGs;
+
+  document.getElementById('totalUsd').textContent = fmtUSD(total);
+  document.getElementById('totalGs').textContent = fmtGs(totalGs);
+  document.getElementById('valorTerrenoOut').textContent = fmtGs(valorTerrenoGs);
+  document.getElementById('valorConstrOut').textContent = m2c>0 ? fmtGs(valorConstrGs) : 'N/A';
+  document.getElementById('valorExtraOut').textContent = extraM2>0 ? `${extraNombre}: ${fmtGs(valorExtraGs)}` : 'N/A';
+
+  const filas = [
+    {k:'PRECIO DE VENTA', usd:totalGs/cotizEval, gs:totalGs},
+    {k:'Comisión (5,5%)', usd:comisionGs/cotizEval, gs:comisionGs},
+    {k:'IRP (2,4%)', usd:irpGs/cotizEval, gs:irpGs},
+    {k:'Escribanía (1%)', usd:escribaniaGs/cotizEval, gs:escribaniaGs},
+    {k:'NETO', usd:netoGs/cotizEval, gs:netoGs, neto:true},
+  ];
+  document.getElementById('tablaCierre').innerHTML = filas.map(filaCierreHtml).join('');
+
+  document.getElementById('footnoteFinal').textContent =
+    `Terreno: ${m2t} m² × ${Math.round(promRateGs).toLocaleString('es-PY')} Gs./m² (promedio en guaraníes de ${rates.length} referencia(s), cada una a su cotización histórica). ` +
+    (m2c>0 ? `Construcción: ${m2c} m² × ${Math.round(rateConstrGs).toLocaleString('es-PY')} Gs./m² (tu estimación). ` : '') +
+    (extraM2>0 ? `${extraNombre}: ${extraM2} m² × ${Math.round(extraRateGs).toLocaleString('es-PY')} Gs./m². ` : '') +
+    `Conversión final a USD con la cotización del ${fechaEval}: 1 USD = ${Math.round(cotizEval).toLocaleString('es-PY')} Gs.`;
+
+  panel.style.display = 'block';
+
+  const comparables = referencias
+    .map(ref=>({ref, rate: calcularRateTerrenoGs(ref)}))
+    .filter(x=>x.rate!==null && !isNaN(x.rate))
+    .map(x=>({
+      dir: x.ref.data.dir || '(sin dirección)',
+      mu: x.ref.data.mu || '',
+      mt: x.ref.data.mt,
+      pr: x.ref.data.pr,
+      fc: x.ref.data.fc,
+      su: x.ref.data.su,
+      mc: x.ref.data.mc,
+      fa: x.ref.data.fa,
+      la: x.ref.data.la,
+      lo: x.ref.data.lo,
+    }))
+    .sort((a,b)=> new Date(b.fc) - new Date(a.fc));
+
+  ultimoResultado = {
+    fechaEval,
+    totalUsd: total,
+    totalGs,
+    valorTerrenoGs,
+    valorConstrGs,
+    valorExtraGs,
+    m2c,
+    extraM2,
+    extraNombre,
+    filasCierre: filas,
+    comparables,
+    footnote: document.getElementById('footnoteFinal').textContent,
+  };
+}
+}
+_init();
+</script>
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Tendencias de Mercado - C21 White</title>
+<style>
+:root{
+  --carbon:#1C1A17;
+  --carbon-2:#26221d;
+  --hueso:#FAF8F4;
+  --hueso-dim:#e8e3d8;
+  --dorado:#B7A165;
+  --dorado-soft:#8f7f4f;
+  --linea:#3a352c;
+  --rojo-alerta:#c0654f;
+  --verde-ok:#7a9b76;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--carbon);color:var(--hueso);font-family:'Georgia','Iowan Old Style',serif;min-height:100vh;}
+.wrap{max-width:1040px;margin:0 auto;padding:36px 24px 80px;}
+.masthead{border-bottom:1px solid var(--linea);padding-bottom:20px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;}
+.masthead h1{font-size:26px;font-weight:400;letter-spacing:0.02em;margin:0;}
+.masthead h1 em{font-style:normal;color:var(--dorado);}
+.masthead .tag{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.6;}
+.panel{background:var(--carbon-2);border:1px solid var(--linea);border-radius:2px;padding:24px;margin-bottom:22px;}
+.panel h2{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--dorado);margin:0 0 16px;font-weight:600;}
+label{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--hueso-dim);opacity:0.75;}
+input,select{background:var(--carbon);border:1px solid var(--linea);color:var(--hueso);padding:9px 10px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;border-radius:2px;outline:none;width:100%;}
+input:focus,select:focus{border-color:var(--dorado);}
+.field{display:flex;flex-direction:column;gap:5px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.btn{padding:10px 18px;background:var(--dorado);color:var(--carbon);border:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;border-radius:2px;cursor:pointer;}
+.btn:hover{background:#c7b276;}
+
+/* multiselect (mismo patrón que otras herramientas) */
+.multiselect{position:relative;}
+.ms-trigger{width:100%;background:var(--carbon);border:1px solid var(--linea);color:var(--hueso);padding:9px 10px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;border-radius:2px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.ms-trigger:hover{border-color:var(--dorado-soft);}
+.ms-trigger .ms-caret{color:var(--dorado);font-size:11px;}
+.ms-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--carbon-2);border:1px solid var(--dorado-soft);border-radius:2px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.ms-panel.open{display:block;}
+.ms-panel input{width:100%;border:none;border-bottom:1px solid var(--linea);border-radius:0;background:transparent;}
+.ms-list{max-height:220px;overflow-y:auto;padding:6px 0;}
+.ms-opt{display:flex;align-items:center;gap:10px;padding:8px 14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;cursor:pointer;color:var(--hueso-dim);}
+.ms-opt:hover{background:var(--carbon);color:var(--hueso);}
+.ms-opt input{width:14px;height:14px;accent-color:var(--dorado);flex:none;padding:0;}
+.ms-opt.checked{color:var(--hueso);}
+.ms-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.ms-chip{display:flex;align-items:center;gap:6px;background:var(--carbon);border:1px solid var(--dorado-soft);color:var(--hueso);padding:4px 8px 4px 10px;border-radius:12px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;}
+.ms-chip button{background:none;border:none;color:var(--dorado);cursor:pointer;font-size:13px;line-height:1;padding:0;}
+
+#msg{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;color:var(--rojo-alerta);margin-top:10px;}
+.chart-wrap{position:relative;height:280px;margin-top:6px;}
+.chart-sub{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--hueso-dim);opacity:0.6;margin-top:6px;}
+table.resumen{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;margin-top:14px;}
+table.resumen th{text-align:right;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--dorado);border-bottom:1px solid var(--linea);padding:8px 10px;font-weight:600;}
+table.resumen th:first-child{text-align:left;}
+table.resumen td{padding:8px 10px;border-bottom:1px solid var(--linea);color:var(--hueso-dim);text-align:right;}
+table.resumen td:first-child{text-align:left;color:var(--hueso);}
+.footnote{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--hueso-dim);opacity:0.5;line-height:1.6;margin-top:10px;}
+a.idlink{color:var(--dorado);text-decoration:none;border-bottom:1px solid transparent;}
+a.idlink:hover{border-bottom-color:var(--dorado);}
+.edificio-card{border:1px solid var(--linea);border-radius:2px;padding:14px 16px;margin-bottom:10px;background:var(--carbon);}
+.edificio-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-family:'Helvetica Neue',Arial,sans-serif;flex-wrap:wrap;}
+.edificio-head .nombre{font-size:14px;color:var(--hueso);}
+.edificio-head .meta{font-size:11px;color:var(--hueso-dim);opacity:0.6;}
+.edificio-var{font-size:12px;font-weight:700;}
+.edificio-var.up{color:var(--verde-ok);}
+.edificio-var.down{color:var(--rojo-alerta);}
+table.mini{width:100%;border-collapse:collapse;font-family:'Helvetica Neue',Arial,sans-serif;font-size:11.5px;margin-top:8px;}
+table.mini td{padding:4px 8px;color:var(--hueso-dim);border-bottom:1px solid var(--linea);}
+table.mini td:first-child{color:var(--hueso);}
+table.mini td.num{text-align:right;font-variant-numeric:tabular-nums;}
+@media(max-width:640px){.grid3{grid-template-columns:1fr;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="cargandoOverlay" style="position:fixed;inset:0;background:#1C1A17;color:#B7A165;display:flex;align-items:center;justify-content:center;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;z-index:999;">Cargando datos desde GitHub…</div>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>Tendencias de <em>Mercado</em></h1>
+    <div class="tag" id="mastheadTag">Century 21 Paraguay · Cerradas</div>
+  </div>
+
+  <div class="panel">
+    <h2>Filtros</h2>
+    <div class="grid3">
+      <div class="field">
+        <label>Barrio / Ciudad (uno o varios)</label>
+        <div class="multiselect" id="barrioMulti">
+          <button type="button" class="ms-trigger" id="msTrigger">
+            <span id="msTriggerText">Seleccionar…</span>
+            <span class="ms-caret">▾</span>
+          </button>
+          <div class="ms-panel" id="msPanel">
+            <input type="text" id="msSearch" placeholder="Buscar barrio…" autocomplete="off">
+            <div class="ms-list" id="msList"></div>
+          </div>
+        </div>
+        <div class="ms-chips" id="msChips"></div>
+      </div>
+      <div class="field">
+        <label>Tipo</label>
+        <select id="filtroTipo"></select>
+      </div>
+      <div class="field">
+        <label>Subtipo</label>
+        <select id="filtroSubtipo"></select>
+      </div>
+    </div>
+    <div id="msg"></div>
+  </div>
+
+  <div class="panel">
+    <h2 id="tituloEvolucion">Evolución de $/m²</h2>
+    <div class="chart-wrap"><canvas id="chartPrecio"></canvas></div>
+    <div class="chart-sub" id="subPrecio"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Descuento de negociación (precio publicado vs. precio de cierre)</h2>
+    <div class="chart-wrap"><canvas id="chartDescuento"></canvas></div>
+    <div class="chart-sub">Mediana por trimestre — la mayoría de las ventas se cierran cerca del precio publicado; los promedios se ven arrastrados por negociaciones puntuales fuertes.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Días reales en el mercado (alta → cierre)</h2>
+    <div class="chart-wrap"><canvas id="chartDias"></canvas></div>
+    <div class="chart-sub">Mediana de días entre la fecha de alta y la fecha de cierre, por trimestre.</div>
+  </div>
+
+  <div class="panel">
+    <h2>Resumen por trimestre</h2>
+    <table class="resumen" id="tablaResumen"></table>
+    <div class="footnote" id="footnoteFinal"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Detalle: propiedades detrás de este filtro</h2>
+    <div class="chart-sub" id="detalleContador" style="margin-bottom:10px;"></div>
+    <table class="resumen" id="tablaDetalle"></table>
+  </div>
+
+  <div class="panel">
+    <h2>Edificios / direcciones con más de una venta de departamento</h2>
+    <div class="chart-sub" style="margin-bottom:10px;">Agrupado por barrio + dirección exacta (no depende del filtro de arriba) — útil para ver cómo evolucionó el precio de un mismo edificio en distintas ventas.</div>
+    <div id="listaEdificios"></div>
+  </div>
+
+</div>
+
+<script>
+let DATA = [];
+async function _init(){
+  const overlay = document.getElementById('cargandoOverlay');
+  try{
+    const resp = await fetch('https://raw.githubusercontent.com/waldofer/c21-cerradas-data/main/data/cerradas.json');
+    // px = precio dudoso (posible Gs cargado como USD), pendiente de revision manual: no se usa en tendencias.
+    DATA = (await resp.json()).filter(d => !d.px);
+  } catch(e){
+    document.body.innerHTML = '<div style="padding:40px;font-family:Helvetica,Arial,sans-serif;color:#c0654f;">No se pudo cargar el dataset desde GitHub. Revisá tu conexión o que el repo c21-cerradas-data exista y sea público.</div>';
+    return;
+  }
+  if(overlay) overlay.style.display='none';
+
+  if(DATA.length){
+    const anios = DATA.map(d=>parseInt(d.fc.slice(0,4))).filter(y=>!isNaN(y));
+    const anioMin = Math.min(...anios), anioMax = Math.max(...anios);
+    document.getElementById('mastheadTag').textContent =
+      `Century 21 Paraguay · Cerradas ${anioMin===anioMax ? anioMin : anioMin+'–'+anioMax}`;
+  }
+
+const tiposLabel = {habitacional:'Habitacional', comercial:'Comercial', rural:'Rural'};
+const UNIT_SUBTYPES = new Set(['departamento','departamento-en-pozo','penthouse','oficinas','estacionamiento']);
+
+// ---------- Multiselect de barrios ----------
+let municipiosSeleccionados = [];
+function renderMsList(lista){
+  const msList = document.getElementById('msList');
+  msList.innerHTML = lista.map(m=>{
+    const checked = municipiosSeleccionados.includes(m);
+    return `<label class="ms-opt ${checked?'checked':''}"><input type="checkbox" value="${m}" ${checked?'checked':''}>${m}</label>`;
+  }).join('');
+  msList.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const v = cb.value;
+      if(cb.checked){ if(!municipiosSeleccionados.includes(v)) municipiosSeleccionados.push(v); }
+      else{ municipiosSeleccionados = municipiosSeleccionados.filter(x=>x!==v); }
+      cb.closest('.ms-opt').classList.toggle('checked', cb.checked);
+      renderMsChips(); actualizarMsTriggerText(); actualizar();
+    });
+  });
+}
+function renderMsChips(){
+  const chips = document.getElementById('msChips');
+  chips.innerHTML = municipiosSeleccionados.map(m=>`<span class="ms-chip">${m}<button type="button" data-m="${m}">×</button></span>`).join('');
+  chips.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      municipiosSeleccionados = municipiosSeleccionados.filter(x=>x!==b.dataset.m);
+      renderMsChips(); actualizarMsTriggerText();
+      const cb = document.querySelector(`#msList input[value="${b.dataset.m}"]`);
+      if(cb){ cb.checked=false; cb.closest('.ms-opt').classList.remove('checked'); }
+      actualizar();
+    });
+  });
+}
+function actualizarMsTriggerText(){
+  const t = document.getElementById('msTriggerText');
+  if(municipiosSeleccionados.length===0) t.textContent = 'Todos los barrios';
+  else if(municipiosSeleccionados.length===1) t.textContent = municipiosSeleccionados[0];
+  else t.textContent = `${municipiosSeleccionados.length} barrios seleccionados`;
+}
+
+const municipiosTodos = [...new Set(DATA.map(d=>d.mu))].sort((a,b)=>a.localeCompare(b,'es'));
+renderMsList(municipiosTodos);
+actualizarMsTriggerText();
+{
+  const trigger = document.getElementById('msTrigger');
+  const panel = document.getElementById('msPanel');
+  const search = document.getElementById('msSearch');
+  trigger.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    panel.classList.toggle('open');
+    if(panel.classList.contains('open')){ search.value=''; renderMsList(municipiosTodos); search.focus(); }
+  });
+  document.addEventListener('click', (e)=>{
+    if(!document.getElementById('barrioMulti').contains(e.target)) panel.classList.remove('open');
+  });
+  search.addEventListener('input', ()=>{
+    const q = search.value.trim().toLowerCase();
+    renderMsList(municipiosTodos.filter(m=>m.toLowerCase().includes(q)));
+  });
+}
+
+// ---------- Filtros tipo/subtipo ----------
+const filtroTipo = document.getElementById('filtroTipo');
+const filtroSubtipo = document.getElementById('filtroSubtipo');
+const tiposTodos = [...new Set(DATA.map(d=>d.ti))];
+filtroTipo.innerHTML = tiposTodos.map(t=>`<option value="${t}">${tiposLabel[t]||t}</option>`).join('');
+filtroTipo.value = 'habitacional';
+
+function actualizarSubtipos(){
+  const subs = [...new Set(DATA.filter(d=>d.ti===filtroTipo.value).map(d=>d.su))].sort((a,b)=>a.localeCompare(b,'es'));
+  filtroSubtipo.innerHTML = subs.map(s=>`<option value="${s}">${s.replace(/-/g,' ')}</option>`).join('');
+  if(subs.includes('departamento-en-pozo')) filtroSubtipo.value = 'departamento-en-pozo';
+}
+filtroTipo.addEventListener('change', ()=>{ actualizarSubtipos(); actualizar(); });
+filtroSubtipo.addEventListener('change', actualizar);
+actualizarSubtipos();
+
+// ---------- Utilidades ----------
+function trimestreDe(fechaStr){
+  const [y,m] = fechaStr.split('-');
+  const q = Math.floor((parseInt(m)-1)/3)+1;
+  return `${y}-Q${q}`;
+}
+function mediana(arr){
+  if(!arr.length) return null;
+  const s=[...arr].sort((a,b)=>a-b);
+  const mid=Math.floor(s.length/2);
+  return s.length%2 ? s[mid] : (s[mid-1]+s[mid])/2;
+}
+function media(arr){return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;}
+function quitarOutliers(valores){
+  if(valores.length<4) return valores;
+  const s=[...valores].sort((a,b)=>a-b);
+  const q=(p)=>{const idx=(s.length-1)*p; const lo=Math.floor(idx), hi=Math.ceil(idx); return s[lo]+(s[hi]-s[lo])*(idx-lo);};
+  const q1=q(0.25), q3=q(0.75), iqr=q3-q1;
+  const lo=q1-1.5*iqr, hi=q3+1.5*iqr;
+  return valores.filter(v=>v>=lo && v<=hi);
+}
+
+let chartPrecio, chartDescuento, chartDias;
+
+function actualizar(){
+  const msg = document.getElementById('msg');
+  msg.textContent = '';
+  const tipo = filtroTipo.value;
+  const subtipo = filtroSubtipo.value;
+  if(!subtipo) return;
+
+  const esUnidad = UNIT_SUBTYPES.has(subtipo);
+  document.getElementById('tituloEvolucion').textContent = esUnidad
+    ? 'Evolución de $/m² de área propia (departamento)'
+    : 'Evolución de $/m² de terreno';
+
+  let filtrados = DATA.filter(d=>{
+    if(municipiosSeleccionados.length>0 && !municipiosSeleccionados.includes(d.mu)) return false;
+    return d.ti===tipo && d.su===subtipo;
+  });
+
+  if(filtrados.length < 8){
+    msg.textContent = `Solo ${filtrados.length} propiedad(es) con este filtro — muy pocos datos para una tendencia confiable. Probá sumar barrios o elegir otro subtipo.`;
+  }
+
+  // Agrupar por trimestre
+  const porTrimestre = {};
+  filtrados.forEach(d=>{
+    const t = trimestreDe(d.fc);
+    if(!porTrimestre[t]) porTrimestre[t] = [];
+    porTrimestre[t].push(d);
+  });
+  const trimestres = Object.keys(porTrimestre).sort();
+
+  // 1) Precio/m2
+  const precioM2Prom = [], precioM2Med = [], nPrecio = [];
+  trimestres.forEach(t=>{
+    const props = porTrimestre[t];
+    const base = esUnidad ? 'mc' : 'mt';
+    const rates = props.filter(d=>d[base] && d[base]>0).map(d=>d.pr/d[base]);
+    const limpios = quitarOutliers(rates);
+    precioM2Prom.push(media(limpios));
+    precioM2Med.push(mediana(limpios));
+    nPrecio.push(limpios.length);
+  });
+
+  // 2) Descuento de negociación
+  const descMed = [];
+  trimestres.forEach(t=>{
+    const props = porTrimestre[t];
+    const descs = props.filter(d=>d.prL && d.pr && d.prL>1000 && d.pr>1000)
+      .map(d=>(d.prL-d.pr)/d.prL*100)
+      .filter(v=>v>=-50 && v<=80);
+    descMed.push(mediana(descs));
+  });
+
+  // 3) Días en mercado
+  const diasMed = [];
+  trimestres.forEach(t=>{
+    const props = porTrimestre[t];
+    const dias = props.filter(d=>d.fa).map(d=>{
+      const a = new Date(d.fa), c = new Date(d.fc);
+      return Math.round((c-a)/(1000*60*60*24));
+    }).filter(v=>v>=0 && v<=1000);
+    diasMed.push(mediana(dias));
+  });
+
+  dibujarLineChart('chartPrecio', chartPrecio, trimestres,
+    [{label:'Promedio', data:precioM2Prom, color:'#B7A165'},
+     {label:'Mediana', data:precioM2Med, color:'#e8e3d8'}],
+    (v)=>v!=null?`$${Math.round(v)}`:'—'
+  , (c)=>chartPrecio=c);
+
+  dibujarLineChart('chartDescuento', chartDescuento, trimestres,
+    [{label:'Descuento mediana', data:descMed, color:'#c0654f'}],
+    (v)=>v!=null?`${v.toFixed(1)}%`:'—'
+  , (c)=>chartDescuento=c);
+
+  dibujarLineChart('chartDias', chartDias, trimestres,
+    [{label:'Días mediana', data:diasMed, color:'#7a9b76'}],
+    (v)=>v!=null?`${Math.round(v)}d`:'—'
+  , (c)=>chartDias=c);
+
+  document.getElementById('subPrecio').textContent =
+    `Cada punto: ${nPrecio.map((n,i)=>`${trimestres[i]}=${n}`).join(', ')} propiedades tras descartar outliers.`;
+
+  // Tabla resumen
+  const tabla = document.getElementById('tablaResumen');
+  let html = '<tr><th>Trimestre</th><th>N</th><th>$/m² prom.</th><th>$/m² mediana</th><th>Descuento mediana</th><th>Días mediana</th></tr>';
+  trimestres.forEach((t,i)=>{
+    html += `<tr>
+      <td>${t}</td>
+      <td>${porTrimestre[t].length}</td>
+      <td>${precioM2Prom[i]!=null?'$'+Math.round(precioM2Prom[i]):'—'}</td>
+      <td>${precioM2Med[i]!=null?'$'+Math.round(precioM2Med[i]):'—'}</td>
+      <td>${descMed[i]!=null?descMed[i].toFixed(1)+'%':'—'}</td>
+      <td>${diasMed[i]!=null?Math.round(diasMed[i])+'d':'—'}</td>
+    </tr>`;
+  });
+  tabla.innerHTML = html;
+
+  document.getElementById('footnoteFinal').textContent =
+    `Filtro activo: ${municipiosSeleccionados.length? municipiosSeleccionados.join(', ') : 'todos los barrios'} · ${tiposLabel[tipo]||tipo} · ${subtipo.replace(/-/g,' ')}. ` +
+    `Precios en USD nominal (tal como se publican en el mercado) — no ajustados por variación del tipo de cambio Gs/USD entre trimestres.`;
+
+  // Tabla de detalle: todas las propiedades detrás del filtro actual
+  const ordenados = [...filtrados].sort((a,b)=> new Date(b.fc)-new Date(a.fc));
+  document.getElementById('detalleContador').textContent = `${ordenados.length} propiedades en este filtro.`;
+  const baseM2 = esUnidad ? 'mc' : 'mt';
+  const tablaDet = document.getElementById('tablaDetalle');
+  let htmlDet = '<tr><th>Fecha</th><th>ID</th><th style="text-align:left">Dirección</th><th style="text-align:left">Barrio</th><th>M²</th><th>Precio</th><th>$/M²</th></tr>';
+  ordenados.slice(0,150).forEach(d=>{
+    const m2 = d[baseM2];
+    const rate = (m2 && m2>0) ? Math.round(d.pr/m2) : null;
+    htmlDet += `<tr>
+      <td>${d.fc}</td>
+      <td><a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener" class="idlink">${d.id}</a></td>
+      <td style="text-align:left">${d.dir||'—'}</td>
+      <td style="text-align:left">${d.mu}</td>
+      <td>${m2||'—'}</td>
+      <td>$${Math.round(d.pr).toLocaleString('es-PY')}</td>
+      <td>${rate?'$'+rate:'—'}</td>
+    </tr>`;
+  });
+  tablaDet.innerHTML = htmlDet;
+  if(ordenados.length>150){
+    document.getElementById('detalleContador').textContent += ' Mostrando las 150 más recientes.';
+  }
+}
+
+function dibujarLineChart(canvasId, existente, labels, series, formatter, setRef){
+  if(existente) existente.destroy();
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: series.map(s=>({
+        label: s.label, data: s.data, borderColor: s.color, backgroundColor: s.color,
+        tension: 0.25, spanGaps: true, pointRadius: 3
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#e8e3d8', font: { family:'Helvetica Neue' } } },
+        tooltip: { callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${formatter(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { ticks: { color: '#e8e3d8' }, grid: { color: '#3a352c' } },
+        y: { ticks: { color: '#e8e3d8', callback: formatter }, grid: { color: '#3a352c' } }
+      }
+    }
+  });
+  setRef(chart);
+}
+
+// ---------- Edificios con más de una venta (independiente del filtro) ----------
+function renderEdificios(){
+  const UNIT_BUILDING = new Set(['departamento','departamento-en-pozo','penthouse']);
+  const grupos = {};
+  DATA.forEach(d=>{
+    if(UNIT_BUILDING.has(d.su) && d.dir && d.mc && d.mc>0){
+      const key = d.mu + ' | ' + d.dir.trim().toLowerCase();
+      if(!grupos[key]) grupos[key] = [];
+      grupos[key].push(d);
+    }
+  });
+  let entradas = Object.entries(grupos).filter(([k,v])=>v.length>=2);
+  entradas.sort((a,b)=>b[1].length - a[1].length);
+  entradas = entradas.slice(0,25);
+
+  const cont = document.getElementById('listaEdificios');
+  cont.innerHTML = entradas.map(([key, ventas])=>{
+    const ordenadas = [...ventas].sort((a,b)=> new Date(a.fc)-new Date(b.fc));
+    const [mu, dir] = key.split(' | ');
+    const primero = ordenadas[0].pr/ordenadas[0].mc;
+    const ultimo = ordenadas[ordenadas.length-1].pr/ordenadas[ordenadas.length-1].mc;
+    const variacion = ((ultimo-primero)/primero*100);
+    const filas = ordenadas.map(d=>`
+      <tr>
+        <td>${d.fc}</td>
+        <td><a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener" class="idlink">${d.id}</a></td>
+        <td class="num">${d.mc} m²</td>
+        <td class="num">$${Math.round(d.pr).toLocaleString('es-PY')}</td>
+        <td class="num">$${Math.round(d.pr/d.mc)}/m²</td>
+      </tr>`).join('');
+    return `
+      <div class="edificio-card">
+        <div class="edificio-head">
+          <span class="nombre">${ordenadas[0].dir || dir}</span>
+          <span class="meta">${mu} · ${ventas.length} ventas</span>
+          <span class="edificio-var ${variacion>=0?'up':'down'}">${variacion>=0?'▲':'▼'} ${Math.abs(variacion).toFixed(1)}% (primer→último $/m²)</span>
+        </div>
+        <table class="mini">${filas}</table>
+      </div>`;
+  }).join('') || '<div class="chart-sub">No se encontraron edificios con 2+ ventas.</div>';
+}
+renderEdificios();
+
+actualizar();
+}
+_init();
+</script>
+</body>
+</html>
