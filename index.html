@@ -360,7 +360,7 @@ body.modo-cliente #panelPresentacion{display:block;}
         <p class="eyebrow">Paso 1 de 3</p>
         <h2 class="titulo-paso">Elegí las ventas <em>con las que vas a comparar</em></h2>
       </div>
-      <p class="ayuda-paso">Dibujá tu zona o elegí barrios. Tocá un punto del mapa para ver sus ventas, abrir la ficha en 21online y sumarlas a tu tasación.</p>
+      <p class="ayuda-paso">Dibujá tu zona o elegí barrios. Tocá un punto del mapa para ver sus ventas, abrir la ficha en 21online y sumarlas a tu AMC.</p>
       <button class="btn-ghost" id="btnAgregarRef" type="button">+ Agregar referencia</button>
     </div>
 
@@ -462,7 +462,7 @@ body.modo-cliente #panelPresentacion{display:block;}
           <div class="field"><label>Asesor responsable</label><input type="text" id="presAsesor" placeholder="ej. Tu nombre"></div>
         </div>
       </div>
-      <button class="btn" id="btnCalcular">Calcular tasación</button>
+      <button class="btn" id="btnCalcular">Calcular AMC</button>
       <div id="msg"></div>
     </div>
   </div>
@@ -490,7 +490,7 @@ body.modo-cliente #panelPresentacion{display:block;}
   <div class="panel" id="panelPresentacion">
     <div class="pres-header">
       <img class="logo-c21" id="presLogo" alt="Century 21 White">
-      <h1 class="pres-title">Tasación de mercado</h1>
+      <h1 class="pres-title">Análisis de mercado comparativo</h1>
       <div class="pres-direccion" id="presOutDireccion"></div>
       <div class="pres-meta" id="presOutMeta"></div>
     </div>
@@ -1120,8 +1120,20 @@ function calcularRateTerrenoGs(ref){
   return valorTerrenoGs / d.mt;
 }
 
+// Texto del resultado de una referencia con construcción (se usa al armar la tarjeta y al escribir en su campo).
+function htmlResultadoRate(ref){
+  const rateTerrenoGs = calcularRateTerrenoGs(ref);
+  return rateTerrenoGs!==null
+    ? `Gs./m² terreno resultante → <span class="rate">${Math.round(rateTerrenoGs).toLocaleString('es-PY')} Gs./m²</span> <span class="badge-ok">✓ usado en el promedio</span>`
+    : `<span class="badge-pendiente">Ingresá el Gs./m² de construcción para calcular el terreno de esta referencia</span>`;
+}
+
 function renderReferencias(){
   const cont = document.getElementById('listaReferencias');
+  // Si se está escribiendo en un campo y la lista se reconstruye por otro motivo, se devuelve el foco al mismo campo.
+  const act = document.activeElement;
+  const foco = (act && cont.contains(act) && (act.classList.contains('input-rate-constr') || act.classList.contains('input-cotiz-manual')))
+    ? {sel: act.classList.contains('input-rate-constr') ? `.input-rate-constr[data-refid="${act.dataset.refid}"]` : `.input-cotiz-manual[data-cotizid="${act.dataset.cotizid}"]`} : null;
   const limiteAntiguedad = fechaLimiteAntiguedad();
   cont.innerHTML = referencias.map(ref=>{
     const d = ref.data;
@@ -1157,9 +1169,7 @@ function renderReferencias(){
               <input type="number" data-refid="${d.id}" class="input-rate-constr" value="${ref.rateConstr ?? ''}" placeholder="ej. 2.800.000">
             </div>
             <div class="ref-calc">
-              ${rateTerrenoGs!==null
-                ? `Gs./m² terreno resultante → <span class="rate">${Math.round(rateTerrenoGs).toLocaleString('es-PY')} Gs./m²</span> <span class="badge-ok">✓ usado en el promedio</span>`
-                : `<span class="badge-pendiente">Ingresá el Gs./m² de construcción para calcular el terreno de esta referencia</span>`}
+              ${htmlResultadoRate(ref)}
             </div>
           </div>`;
       }
@@ -1195,7 +1205,11 @@ function renderReferencias(){
       const id = parseInt(inp.dataset.refid);
       const ref = referencias.find(r=>r.data.id===id);
       ref.rateConstr = inp.value === '' ? null : parseFloat(inp.value);
-      renderReferencias();
+      // Se actualiza solo el resultado de esta tarjeta, el promedio y la barra. El campo NO se reconstruye:
+      // si se reconstruyera, perdería el foco con cada dígito y no se podría escribir de corrido.
+      inp.closest('.grid2').querySelector('.ref-calc').innerHTML = htmlResultadoRate(ref);
+      actualizarPromedio();
+      renderDock();
     });
   });
   cont.querySelectorAll('.input-cotiz-manual').forEach(inp=>{
@@ -1203,9 +1217,15 @@ function renderReferencias(){
       const id = parseInt(inp.dataset.cotizid);
       const ref = referencias.find(r=>r.data.id===id);
       ref.cotizManual = inp.value === '' ? null : parseFloat(inp.value);
-      renderReferencias();
     });
+    // al salir del campo (o con Enter) recién se rearma la tarjeta: con un valor válido este campo desaparece
+    inp.addEventListener('change', ()=>renderReferencias());
   });
+
+  if(foco){
+    const campo = cont.querySelector(foco.sel);
+    if(campo){ campo.focus(); const v = campo.value; campo.value = ''; campo.value = v; } // cursor al final
+  }
 
   actualizarPromedio();
   renderDock();
@@ -1361,7 +1381,7 @@ async function calcularTasacion(){
   const fechaEval = document.getElementById('subFechaEval').value || hoyStr();
 
   if(!m2t || m2t<=0){
-    msg.textContent = 'Ingresá los m² de terreno de la propiedad a tasar.';
+    msg.textContent = 'Ingresá los m² de terreno de la propiedad que estás analizando.';
     return;
   }
   if(m2c>0 && !rateConstrGs){
@@ -1374,7 +1394,7 @@ async function calcularTasacion(){
   btn.textContent = 'Buscando cotización de evaluación…';
   const cotizEval = await obtenerCotizacionFecha(fechaEval);
   btn.disabled = false;
-  btn.textContent = 'Calcular tasación';
+  btn.textContent = 'Calcular AMC';
 
   if(!cotizEval){
     msg.textContent = `No se pudo obtener la cotización del ${fechaEval}. Probá con otra fecha o esperá y reintentá.`;
