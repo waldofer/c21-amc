@@ -96,6 +96,9 @@ input::placeholder{color:var(--hueso-dim);opacity:0.4;}
 .pill-terreno{background:rgba(192,101,79,0.15);color:var(--rojo-alerta);}
 .pill-otro{background:rgba(232,227,216,0.08);color:var(--hueso-dim);}
 .res-row .idfecha{font-size:11px;color:var(--hueso-dim);opacity:0.55;font-variant-numeric:tabular-nums;}
+.res-row .ficha-link{color:var(--dorado);text-decoration:none;border-bottom:1px dotted var(--dorado-soft);}
+.res-row .ficha-link:hover{color:var(--hueso);border-bottom-color:var(--hueso);}
+.res-row .idfecha:has(.ficha-link){opacity:0.85;}
 .res-row .side{text-align:right;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:100px;}
 .res-row .m2rate{color:var(--dorado);font-size:15px;font-variant-numeric:tabular-nums;}
 .res-row .m2rate small{color:var(--hueso-dim);opacity:0.5;font-size:10px;text-transform:none;letter-spacing:0;}
@@ -403,7 +406,7 @@ function filaResultadoHtml(d){
         <div class="dir">${tituloCase(d.dir)||'(sin dirección)'} <span class="barrio">— ${d.mu}</span></div>
         <div class="meta">
           <span class="pill pill-${familia}">${pillLabel}</span>
-          <span class="idfecha">ID ${d.id} · ${d.fc}</span>
+          <span class="idfecha"><a class="ficha-link" href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener" title="Abrir la ficha de vendido en 21online">ID ${d.id} ↗</a> · ${d.fc}</span>
         </div>
       </div>
       <div class="side">
@@ -556,6 +559,7 @@ const buscarAntiguedad = document.getElementById('buscarAntiguedad');
 const resultadosBusqueda = document.getElementById('resultadosBusqueda');
 
 let antiguedadMeses = parseInt(buscarAntiguedad.value);
+let resultadosVisibles = 30, firmaBusqueda = '';
 
 function fechaLimiteAntiguedad(){
   const base = document.getElementById('subFechaEval').value || hoyStr();
@@ -580,7 +584,9 @@ buscarAntiguedad.addEventListener('change', ()=>{
 poblarFiltrosBusqueda();
 
 btnAgregarRef.addEventListener('click', ()=>{
-  buscadorPanel.style.display = buscadorPanel.style.display==='none' ? 'block' : 'none';
+  // El panel arranca oculto por CSS (style.display está vacío), por eso se lee el estilo calculado:
+  // con style.display el primer clic "cerraba" un panel ya cerrado y hacían falta dos clics.
+  buscadorPanel.style.display = getComputedStyle(buscadorPanel).display==='none' ? 'block' : 'none';
   if(buscadorPanel.style.display==='block'){
     if(modoBusqueda==='mapa' && !mapaBusqueda) inicializarMapaBusqueda();
     ejecutarBusqueda();
@@ -653,7 +659,7 @@ inicializarMultiselectBarrios();
 
 // ---------- Modo de búsqueda: barrio vs mapa ----------
 let modoBusqueda = 'barrio';
-let mapaBusqueda, capaDibujoBusqueda, areaDibujadaBusqueda = null;
+let mapaBusqueda, capaDibujoBusqueda, capaPuntosBusqueda, areaDibujadaBusqueda = null;
 const modoBarrioBtn = document.getElementById('modoBarrioBtn');
 const modoMapaBtn = document.getElementById('modoMapaBtn');
 const mapaBusquedaWrap = document.getElementById('mapaBusquedaWrap');
@@ -677,15 +683,11 @@ modoMapaBtn.addEventListener('click', ()=>{
 });
 
 function inicializarMapaBusqueda(){
-  mapaBusqueda = L.map('mapaBusqueda').setView([-25.30, -57.63], 12);
+  // preferCanvas: miles de puntos como canvas en vez de un nodo SVG cada uno (se redibujan al filtrar)
+  mapaBusqueda = L.map('mapaBusqueda', {preferCanvas:true}).setView([-25.30, -57.63], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'&copy; OpenStreetMap', maxZoom:19}).addTo(mapaBusqueda);
 
-  const capaPuntos = L.layerGroup({renderer:L.canvas()}).addTo(mapaBusqueda);
-  DATA.forEach(d=>{
-    if(d.la && d.lo){
-      L.circleMarker([d.la, d.lo], {radius:3, color:'#B7A165', weight:1, fillColor:'#B7A165', fillOpacity:0.5}).addTo(capaPuntos);
-    }
-  });
+  capaPuntosBusqueda = L.layerGroup().addTo(mapaBusqueda); // los puntos los dibuja ejecutarBusqueda() → actualizarPuntosMapa()
 
   capaDibujoBusqueda = new L.FeatureGroup();
   mapaBusqueda.addLayer(capaDibujoBusqueda);
@@ -713,6 +715,27 @@ function inicializarMapaBusqueda(){
     areaDibujadaBusqueda = null;
     document.getElementById('mapaEstado').textContent = 'Usá el ícono de polígono (⬠) o círculo en el mapa para delimitar la zona.';
     ejecutarBusqueda();
+  });
+}
+
+// Filtros que comparten la lista y los puntos del mapa (el área dibujada y los barrios solo aplican a la lista).
+function coincideTextoYSubtipo(d, sub, q){
+  if(sub && d.su!==sub) return false;
+  if(q && !String(d.id).includes(q) && !(d.dir||'').toLowerCase().includes(q)) return false;
+  return true;
+}
+// Redibuja los puntos dorados con el mismo tipo, texto y antigüedad que la lista.
+function actualizarPuntosMapa(){
+  if(!capaPuntosBusqueda) return;
+  const q = buscarTexto.value.trim().toLowerCase();
+  const sub = buscarSubtipo.value;
+  const limite = fechaLimiteAntiguedad();
+  capaPuntosBusqueda.clearLayers();
+  DATA.forEach(d=>{
+    if(!d.la || !d.lo) return;
+    if(!coincideTextoYSubtipo(d, sub, q)) return;
+    if(new Date(d.fc+'T12:00:00') < limite) return;
+    L.circleMarker([d.la, d.lo], {radius:3, color:'#B7A165', weight:1, fillColor:'#B7A165', fillOpacity:0.5}).addTo(capaPuntosBusqueda);
   });
 }
 
@@ -746,6 +769,7 @@ function ejecutarBusqueda(){
   const q = buscarTexto.value.trim().toLowerCase();
   const sub = buscarSubtipo.value;
   const limiteAntiguedad = fechaLimiteAntiguedad();
+  actualizarPuntosMapa();
 
   if(modoBusqueda==='mapa' && !areaDibujadaBusqueda){
     resultadosBusqueda.innerHTML = '<div class="m" style="padding:10px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:var(--hueso-dim)">Dibujá una zona en el mapa para ver referencias.</div>';
@@ -753,16 +777,11 @@ function ejecutarBusqueda(){
   }
 
   function coincideSinVentana(d){
-    if(sub && d.su!==sub) return false;
+    if(!coincideTextoYSubtipo(d, sub, q)) return false;
     if(modoBusqueda==='mapa'){
       if(!puntoEnAreaDibujadaBusqueda(d.la, d.lo)) return false;
     } else if(municipiosSeleccionados.length>0){
       if(!municipiosSeleccionados.includes(d.mu)) return false;
-    }
-    if(q){
-      const idMatch = String(d.id).includes(q);
-      const txtMatch = (d.dir||'').toLowerCase().includes(q);
-      if(!idMatch && !txtMatch) return false;
     }
     return true;
   }
@@ -770,7 +789,11 @@ function ejecutarBusqueda(){
   let resultados = DATA.filter(d=> coincideSinVentana(d) && !(new Date(d.fc+'T12:00:00') < limiteAntiguedad));
   resultados.sort((a,b)=> new Date(b.fc)-new Date(a.fc));
   const totalCoincidencias = resultados.length;
-  resultados = resultados.slice(0,30);
+  // Sin tope fijo: se muestran de a 30 y "Mostrar más" suma otros 30. Al cambiar cualquier filtro se vuelve a 30.
+  const firma = JSON.stringify([q, sub, antiguedadMeses, modoBusqueda, municipiosSeleccionados, areaDibujadaBusqueda]);
+  if(firma!==firmaBusqueda){ firmaBusqueda = firma; resultadosVisibles = 30; }
+  resultados = resultados.slice(0, resultadosVisibles);
+  const restantes = totalCoincidencias - resultados.length;
 
   const contadorHtml = totalCoincidencias>0
     ? `<div class="m" style="padding:6px 10px;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.7;">Mostrando ${resultados.length} de ${totalCoincidencias} cierres dentro de los últimos ${antiguedadMeses} meses</div>`
@@ -783,7 +806,12 @@ function ejecutarBusqueda(){
 
   const grupos = agruparConsecutivos(resultados);
   const filasHtml = grupos.map((g,i)=> g.items.length>1 ? grupoResumenHtml(g.items, i) : filaResultadoHtml(g.items[0])).join('');
-  resultadosBusqueda.innerHTML = contadorHtml + (filasHtml || `<div class="m" style="padding:10px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:var(--hueso-dim)">${mensajeVacio}</div>`);
+  const masHtml = restantes>0
+    ? `<button type="button" class="btn-ghost" id="btnMasResultados" style="display:block;margin:12px auto;">Mostrar ${Math.min(30,restantes)} más (${restantes} restantes)</button>`
+    : '';
+  resultadosBusqueda.innerHTML = contadorHtml + (filasHtml || `<div class="m" style="padding:10px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:var(--hueso-dim)">${mensajeVacio}</div>`) + masHtml;
+  const btnMas = resultadosBusqueda.querySelector('#btnMasResultados');
+  if(btnMas) btnMas.addEventListener('click', ()=>{ resultadosVisibles += 30; ejecutarBusqueda(); });
 
   resultadosBusqueda.querySelectorAll('button[data-id]').forEach(b=>{
     b.addEventListener('click', ()=>{
