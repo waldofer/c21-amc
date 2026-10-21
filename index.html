@@ -8,6 +8,7 @@
 :root{
   --niebla:#EBEFF2;--blanco:#fff;--tinta:#0D1520;--tinta2:#17222F;--pizarra:#586678;--linea:#DAE1E8;
   --oro:#B3862A;--orohi:#E9C873;--orovelo:#F6EDD3;--ok:#2E7D5B;--alerta:#B5573F;
+  --azul:#2E6DA4;--azulhi:#9CC3EA;--azulvelo:#E4EEF8; /* ofrecidas (en venta): azul, para no confundirlas con las vendidas (dorado) */
   --ui:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;--num:'Instrument Serif',Georgia,serif;
   --sombra:0 1px 2px rgba(13,21,32,.06),0 12px 32px -12px rgba(13,21,32,.22);--ease:cubic-bezier(.2,.8,.2,1);
   /* nombres viejos: los siguen usando las plantillas de la lógica (JS) */
@@ -65,6 +66,10 @@ input[type=checkbox]{height:auto;}
 .ref-title a{color:var(--tinta);font-weight:600;text-decoration:none;border-bottom:1.5px solid var(--orohi);}
 .ref-title a:hover{border-bottom-color:var(--oro);}
 .ref-dir{font:600 17px var(--ui);margin-top:2px;}
+.ref-aviso{font-size:13.5px;color:var(--pizarra);margin-top:2px;}
+.ref-title .origen{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--orovelo);color:#8a6718;}
+.ref-title .origen.oferta{background:var(--azulvelo);color:var(--azul);}
+.ref-card.oferta{border-left-color:var(--azul);}
 .ref-datos{display:flex;gap:6px 22px;flex-wrap:wrap;font-size:14px;color:var(--pizarra);margin-bottom:12px;}
 .ref-datos b{color:var(--tinta);font-weight:600;}
 .ref-calc{background:var(--blanco);border:1px solid var(--linea);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--pizarra);}
@@ -98,23 +103,15 @@ input[type=checkbox]{height:auto;}
 .res-row{display:flex;align-items:stretch;gap:16px;padding:14px 8px 14px 18px;border-bottom:1px solid var(--linea);position:relative;border-radius:12px;transition:background .2s;}
 .res-row:hover{background:#F6F8FA;}
 .res-row::before{content:'';position:absolute;left:4px;top:12px;bottom:12px;width:4px;border-radius:2px;background:var(--recencia,var(--oro));}
-.res-row .main{flex:1;min-width:0;}
 .res-row .dir{color:var(--tinta);font-weight:600;font-size:15px;line-height:1.3;}
 .res-row .dir .barrio{color:var(--pizarra);font-weight:400;font-size:13px;}
-.res-row .meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
 .pill{font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
 .pill-unidad{background:rgba(46,125,91,.12);color:var(--ok);}
 .pill-casa{background:rgba(179,134,42,.14);color:#8a6718;}
 .pill-terreno{background:rgba(181,87,63,.12);color:var(--alerta);}
 .pill-otro{background:rgba(88,102,120,.12);color:var(--pizarra);}
-.res-row .idfecha{font-size:13px;color:var(--pizarra);font-variant-numeric:tabular-nums;}
 .res-row .ficha-link{color:var(--tinta);font-weight:500;text-decoration:none;border-bottom:1.5px solid var(--orohi);}
 .res-row .ficha-link:hover{border-bottom-color:var(--oro);}
-.res-row .side{text-align:right;display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:130px;}
-.res-row .m2rate{font:400 28px/1 var(--num);color:var(--oro);font-variant-numeric:tabular-nums;}
-.res-row .m2rate small{font:400 12px var(--ui);color:var(--pizarra);}
-.res-row .total{color:var(--pizarra);font-size:12.5px;font-variant-numeric:tabular-nums;}
-.res-row .btn-ghost{margin-top:8px;align-self:flex-end;padding:6px 16px;font-size:13px;}
 .res-group-head{cursor:pointer;}
 .res-group-head .chevron{color:var(--oro);font-size:12.5px;margin-left:6px;font-weight:500;}
 .res-group-children .res-row{padding-left:34px;background:#F8FAFB;}
@@ -163,7 +160,11 @@ body.modo-cliente #panelPresentacion{display:block;}
 .comparable-card .dias-badge{font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:rgba(46,125,91,.12);color:var(--ok);white-space:nowrap;font-weight:600;}
 .comparable-card .c-precio{font:400 28px/1 var(--num);color:var(--oro);margin-top:8px;}
 .comparable-card .c-datos{color:var(--pizarra);font-size:13px;margin-top:3px;}
-/* ===== Parte 2: paso 1 — el mapa como protagonista ===== */
+.comparable-card .c-precio small{font:400 13px var(--ui);color:var(--pizarra);}
+.comparable-card .map-pin.oferta{background:var(--azul);}
+.pill-origen{text-transform:none;letter-spacing:0;font-size:12px;background:var(--orovelo);color:#8a6718;}
+.pill-origen.oferta{background:var(--azulvelo);color:var(--azul);}
+/* ===== Parte 2: paso 1 — filtros, mapa y listado en tabla ===== */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
 .hero-panel{background:none;box-shadow:none;border:0;padding:0;margin-bottom:64px;}
 .paso-intro{display:grid;grid-template-columns:auto 1fr;gap:56px;align-items:end;margin-bottom:24px;}
@@ -175,57 +176,98 @@ body.modo-cliente #panelPresentacion{display:block;}
 .ayuda-paso{color:var(--pizarra);font-size:15.5px;max-width:46ch;margin:0 0 4px;justify-self:end;}
 #btnAgregarRef{display:none;}
 #buscadorPanel{display:block;margin-top:0;border-top:0;padding-top:0;}
-.mapa-wrap{position:relative;height:clamp(640px,calc(100vh - 250px),880px);border-radius:28px;overflow:hidden;background:#dfe5ea;box-shadow:var(--sombra),0 0 0 1px rgba(13,21,32,.08);}
-.mapa-wrap.full{position:fixed;inset:0;z-index:2000;border-radius:0;height:100vh;}
+/* selector de base: vendidas u ofrecidas (nunca las dos a la vez) */
+.base-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 14px;font-size:14px;color:var(--pizarra);}
+.base-toggle > span{font-weight:500;margin-right:4px;}
+.base-btn{background:var(--blanco);border:1.5px solid var(--linea);color:var(--tinta);padding:9px 18px;border-radius:999px;font:600 14.5px var(--ui);cursor:pointer;transition:all .2s var(--ease);}
+.base-btn b{font-weight:600;font-variant-numeric:tabular-nums;}
+.base-btn:hover:not(:disabled){border-color:var(--tinta);}
+.base-btn.active{background:var(--tinta);border-color:var(--tinta);color:#fff;}
+#baseVendidasBtn.active b{color:var(--orohi);}
+#baseOfrecidasBtn.active{background:var(--azul);border-color:var(--azul);}
+.base-btn:disabled{color:var(--pizarra);cursor:not-allowed;opacity:.7;}
+#buscadorPanel.base-ofrecidas .f-antig{display:none;}
+#buscadorPanel.base-ofrecidas .res-row .c-rate{color:var(--azul);}
+#buscadorPanel.base-ofrecidas .res-group-head .chevron{color:var(--azul);}
+/* barra de filtros */
+.filtros-barra{position:relative;z-index:900;background:var(--blanco);border-radius:20px;box-shadow:var(--sombra);padding:14px 16px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 14px;}
+.filtros-barra .modo-toggle{margin:0;}
+.filtros-barra .field{gap:5px;min-width:0;}
+.filtros-barra .field label{font-size:12.5px;}
+.filtros-barra input,.filtros-barra select,.filtros-barra .ms-trigger{height:44px;font-size:15px;}
+.filtros-barra #campoBarrioMulti{width:230px;}
+.filtros-barra .field.f-tipo{width:210px;}.filtros-barra .field.f-antig{width:170px;}
+.filtros-barra .campo-texto{flex:1;min-width:210px;}
+.filtros-barra .ms-panel{width:320px;right:auto;}
+.filtros-barra .ms-chips{display:none;}
+.filtros-barra .ms-opt input{width:16px;height:16px;padding:0;border:revert;background:revert;box-shadow:none;}
+.filtros-barra .ms-opt{padding:8px 14px;}.filtros-barra .ms-list{max-height:300px;}
+/* mapa */
+.mapa-wrap{position:relative;z-index:1;margin-top:16px;height:clamp(380px,48vh,540px);border-radius:24px;overflow:hidden;background:#dfe5ea;box-shadow:var(--sombra),0 0 0 1px rgba(13,21,32,.08);}
+.mapa-wrap.full{position:fixed;inset:0;z-index:2000;border-radius:0;height:100vh;margin:0;}
 #mapaBusquedaWrap{position:absolute;inset:0;}
 #mapaBusqueda{position:absolute;inset:0;height:100%;border:0;border-radius:0;}
 /* mosaicos de OSM desaturados: el mapa casi no tiene color y los puntos dorados son lo que se ve */
 .leaflet-tile-pane{filter:grayscale(1) contrast(.86) brightness(1.13);}
-.flot{position:absolute;z-index:700;background:rgba(255,255,255,.9);backdrop-filter:blur(16px) saturate(1.5);border:1px solid rgba(255,255,255,.7);box-shadow:var(--sombra);}
-/* cápsula de filtros */
-.capsula{z-index:800;top:20px;left:20px;max-width:calc(100% - 300px);border-radius:18px;padding:6px;display:flex;flex-wrap:wrap;align-items:center;gap:2px;animation:entra .7s .2s var(--ease) both;}
-.capsula .modo-toggle{margin:0 6px 0 0;white-space:nowrap;}.capsula .modo-btn{white-space:nowrap;padding:9px 13px;}
-.capsula .field{min-width:0;gap:0;}
-.capsula .field+.field{border-left:1px solid var(--linea);}
-.capsula select,.capsula input,.capsula .ms-trigger{border:0;background:transparent;height:40px;font:500 14.5px var(--ui);padding:0 12px;border-radius:10px;box-shadow:none;}
-.capsula select:hover,.capsula input:hover,.capsula .ms-trigger:hover{background:rgba(13,21,32,.05);}
-.capsula select{width:170px;}.capsula #campoBarrioMulti{width:170px;}
-.capsula .ms-panel{width:300px;right:auto;}
-.capsula .ms-chips{display:none;}
-.capsula .ms-opt input{width:16px;height:16px;padding:0;border:revert;background:revert;box-shadow:none;}.capsula .ms-opt{padding:8px 14px;}.capsula .ms-list{max-height:300px;}
-/* barra de la zona dibujada */
-.mapa-toolbar.flot{left:440px;bottom:112px;padding:8px 8px 8px 16px;border-radius:14px;display:flex;align-items:center;gap:12px;margin:0;font-size:13.5px;color:var(--pizarra);animation:entra .7s .4s var(--ease) both;}
+.flot{position:absolute;z-index:700;background:rgba(255,255,255,.92);backdrop-filter:blur(16px) saturate(1.5);border:1px solid rgba(255,255,255,.7);box-shadow:var(--sombra);}
+.mapa-toolbar.flot{left:16px;bottom:16px;padding:8px 8px 8px 16px;border-radius:14px;display:flex;align-items:center;gap:12px;margin:0;font-size:13.5px;color:var(--pizarra);}
 .mapa-wrap.modo-barrio .mapa-toolbar,.mapa-wrap.modo-barrio .leaflet-draw{display:none;}
-#btnFull{top:20px;right:76px;border-radius:14px;padding:11px 16px;font:500 14px var(--ui);cursor:pointer;color:var(--tinta);}
-.leaflet-top.leaflet-right{margin:20px 20px 0 0;}
+#btnFull{top:16px;right:72px;border-radius:14px;padding:11px 16px;font:500 14px var(--ui);cursor:pointer;color:var(--tinta);}
+.leaflet-top.leaflet-right{margin:16px 16px 0 0;}
 .leaflet-bar{border:0!important;border-radius:14px!important;overflow:hidden;box-shadow:var(--sombra)!important;}
 .leaflet-bar a{background:rgba(255,255,255,.94);color:var(--tinta);border:0!important;}
 .leaflet-control-attribution{background:rgba(255,255,255,.7)!important;}
-/* panel de resultados flotante */
-.zona{top:84px;left:20px;bottom:20px;width:400px;border-radius:22px;display:flex;flex-direction:column;overflow:hidden;animation:entra .7s .3s var(--ease) both;}
-.zona header{padding:16px 20px 8px;}.zona h3{margin:0 0 10px;font:600 18px var(--ui);letter-spacing:-.01em;}
-.zona .campo-texto input{height:42px;font-size:14.5px;background:#fff;}
-.zona #resultadosBusqueda{flex:1;max-height:none;margin:0;padding:0 8px 8px;overflow-y:auto;scrollbar-width:thin;}
-.zona .res-row{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:14px 12px 14px 18px;border-bottom:0;border-radius:14px;}
-.zona .res-row:hover{background:#fff;box-shadow:0 1px 0 var(--linea),0 8px 20px -10px rgba(13,21,32,.25);}
-.zona .res-row .side{min-width:0;}
-.zona .res-row .m2rate{font-size:26px;}
-#btnMasResultados{width:calc(100% - 20px);margin:6px 10px 12px!important;border:1px dashed var(--pizarra);border-radius:12px;padding:11px;color:var(--tinta);}
-/* barra de referencias + promedio (refleja lo que calcula el AMC; no calcula nada) */
-.dock{left:440px;right:20px;bottom:20px;background:var(--tinta);color:#fff;border-radius:22px;padding:14px 14px 14px 22px;display:flex;align-items:center;gap:22px;border:1px solid rgba(255,255,255,.08);animation:entra .7s .45s var(--ease) both;}
+/* barra de referencias: queda fija arriba mientras se recorre el listado */
+.dock{position:sticky;top:76px;z-index:850;margin-top:16px;background:var(--tinta);color:#fff;border-radius:20px;padding:12px 12px 12px 22px;display:flex;align-items:center;gap:22px;border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 40px -18px rgba(13,21,32,.6);}
 .dock .t{min-width:0;flex:1;}
-.dock .lbl{font:500 12px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:#8EA0B4;margin-bottom:6px;display:flex;justify-content:space-between;}
-#dockRefs{display:flex;flex-wrap:wrap;gap:8px;max-height:92px;overflow-y:auto;scrollbar-width:thin;padding:2px;min-height:38px;align-items:center;}
-#dockRefs:empty::before{content:"Sumá ventas desde la lista o tocando un punto del mapa";color:#8EA0B4;font-size:14px;}
-.chip{flex:none;display:flex;align-items:center;gap:10px;background:var(--tinta2);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px 8px 6px 12px;animation:pop .45s var(--ease) both;}
-.chip b{font:600 13.5px var(--ui);color:var(--orohi);white-space:nowrap;}.chip span{font-size:12.5px;color:#B6C2D0;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dock .lbl{font:500 12px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:#8EA0B4;margin-bottom:4px;display:flex;gap:16px;}
+#dockRefs{display:flex;flex-wrap:wrap;gap:8px;max-height:86px;overflow-y:auto;scrollbar-width:thin;padding:2px;min-height:34px;align-items:center;}
+#dockRefs:empty::before{content:"Sumá referencias desde el listado o tocando un punto del mapa";color:#8EA0B4;font-size:14px;}
+.chip{flex:none;display:flex;align-items:center;gap:10px;background:var(--tinta2);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:5px 8px 5px 12px;animation:pop .45s var(--ease) both;}
+.chip b{font:600 13.5px var(--ui);color:var(--orohi);white-space:nowrap;}.chip span{font-size:12.5px;color:#B6C2D0;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chip i.origen{font:600 11px var(--ui);font-style:normal;color:var(--orohi);opacity:.85;white-space:nowrap;}
+.chip.oferta{border-color:rgba(156,195,234,.35);}.chip.oferta b,.chip.oferta i.origen{color:var(--azulhi);}
 .chip .x{border:0;background:rgba(255,255,255,.08);color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;line-height:1;}.chip .x:hover{background:var(--orohi);color:var(--tinta);}
-.dock .prom{text-align:right;padding-left:22px;border-left:1px solid rgba(255,255,255,.12);max-width:300px;}
+.dock .prom{text-align:right;padding-left:22px;border-left:1px solid rgba(255,255,255,.12);max-width:320px;}
 .dock .prom small{display:block;font:500 12px var(--ui);letter-spacing:.1em;text-transform:uppercase;color:#8EA0B4;}
-.dock .prom .n{font:400 40px/1.05 var(--num);color:var(--orohi);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.dock .prom .n{font:400 36px/1.05 var(--num);color:var(--orohi);font-variant-numeric:tabular-nums;white-space:nowrap;}
 .dock .prom .s{font-size:12px;color:#8EA0B4;line-height:1.3;}
-.cta{display:inline-block;background:var(--orohi);color:var(--tinta);border:0;border-radius:14px;padding:16px 22px;font:600 15px var(--ui);cursor:pointer;text-decoration:none;white-space:nowrap;transition:transform .3s var(--ease),background .2s;}
+.cta{display:inline-block;background:var(--orohi);color:var(--tinta);border:0;border-radius:14px;padding:15px 22px;font:600 15px var(--ui);cursor:pointer;text-decoration:none;white-space:nowrap;transition:transform .3s var(--ease),background .2s;}
 .cta:hover{transform:translateY(-2px);background:#f1d68a;}
+/* listado de ventas: tabla a todo el ancho */
+.listado{background:var(--blanco);border-radius:24px;box-shadow:var(--sombra);margin-top:18px;padding:0 0 18px;overflow:hidden;}
+.listado-cab{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:22px 24px 14px;}
+.listado-cab h3{margin:0;font:600 22px var(--ui);letter-spacing:-.01em;}
+.listado-nota{margin:4px 0 0;color:var(--pizarra);font-size:13.5px;max-width:78ch;}
+.orden{display:flex;flex-direction:column;gap:5px;}.orden label{font-size:12.5px;}.orden select{width:230px;height:42px;font-size:15px;}
+.tabla-cab,.listado .res-row{display:grid;grid-template-columns:minmax(220px,2.4fr) 92px 100px 128px 128px 132px 100px 112px;gap:0 14px;align-items:center;}
+.tabla-cab{padding:10px 24px 10px 28px;font:600 12px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--pizarra);border-top:1px solid var(--linea);border-bottom:1.5px solid var(--tinta);}
+.tabla-cab .r{text-align:right;}
+.listado #resultadosBusqueda{max-height:none;overflow:visible;margin:0;padding:0;}
+.listado #resultadosBusqueda > .m{padding:12px 28px!important;font-size:13px!important;opacity:1!important;color:var(--pizarra)!important;font-family:var(--ui)!important;}
+.listado .res-row{padding:13px 24px 13px 28px;border-bottom:1px solid var(--linea);border-radius:0;position:relative;transition:background .15s;}
+.listado .res-row:hover{background:#F6F8FA;}
+.listado .res-row::before{left:10px;top:10px;bottom:10px;width:4px;}
+.res-row .c-dir{min-width:0;}
+.res-row .dir{color:var(--tinta);font-weight:600;font-size:15px;line-height:1.25;}
+.res-row .barrio{color:var(--pizarra);font-size:13px;margin-top:2px;}
+.res-row .c-fecha{font-size:14px;color:var(--tinta);font-variant-numeric:tabular-nums;}
+.res-row .c-fecha .antig{display:block;color:var(--alerta);font-size:12px;font-variant-numeric:normal;}
+.res-row .aviso{color:var(--pizarra);font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.res-row .c-precio{text-align:right;font:600 15px var(--ui);font-variant-numeric:tabular-nums;color:var(--tinta);}
+.res-row .c-m2{text-align:right;font-size:14px;color:var(--tinta);font-variant-numeric:tabular-nums;}
+.res-row .c-m2 small{display:block;color:var(--pizarra);font-size:12px;}
+.res-row .c-rate{text-align:right;font:400 27px/1 var(--num);color:var(--oro);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.res-row .c-rate small{font:400 11.5px var(--ui);color:var(--pizarra);}
+.res-row .c-ficha{font-size:13.5px;}
+.res-row .c-acc{text-align:right;}
+.res-row .c-acc .btn-ghost{padding:6px 16px;font-size:13px;}
+.res-row .c-acc .btn-ghost.ok{background:var(--ok);border-color:var(--ok);color:#fff;opacity:.9;}
+.res-group-head .chevron{color:var(--oro);font-weight:500;margin-left:8px;cursor:pointer;}
+.res-group-children .res-row{background:#F8FAFB;padding-left:46px;}
+.res-group-children .res-row::before{opacity:.35;left:28px;width:3px;}
+.res-group-children .res-row .dir{font-size:14px;font-weight:500;}
+#btnMasResultados{width:calc(100% - 48px);margin:16px 24px 0!important;border:1px dashed var(--pizarra);border-radius:12px;padding:12px;color:var(--tinta);}
 /* referencias elegidas (con su Gs./m² de construcción) */
 .sub-h{font:600 22px var(--ui);letter-spacing:-.01em;margin:44px 0 6px;}
 .vacio{color:var(--pizarra);margin:0 0 6px;}
@@ -240,21 +282,38 @@ body.modo-cliente #panelPresentacion{display:block;}
 .pop .v b{font:400 28px/1 var(--num);color:var(--oro);}.pop .v b small{font:400 12px var(--ui);color:var(--pizarra);}
 .pop .d{display:block;color:var(--pizarra);font-size:13px;margin:3px 0 8px;}.pop .acc{display:flex;align-items:center;gap:16px;}
 .pop .ficha-link{color:var(--tinta);font-weight:500;font-size:13.5px;text-decoration:none;border-bottom:1.5px solid var(--orohi);}
+.res-row .ficha-link{color:var(--tinta);font-weight:500;text-decoration:none;border-bottom:1.5px solid var(--orohi);}
+.res-row .ficha-link:hover,.pop .ficha-link:hover{border-bottom-color:var(--oro);}
 .pop .btn-ghost{padding:6px 16px;font-size:13px;}.pop .btn-ghost.ok{background:var(--ok);border-color:var(--ok);color:#fff;}
 @keyframes entra{from{opacity:0;transform:translateY(14px) scale(.98)}}
 @keyframes pop{from{opacity:0;transform:scale(.85)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;}}
-@media(max-width:1100px){
+@media(max-width:1180px){
+  .tabla-cab,.listado .res-row{grid-template-columns:minmax(180px,2fr) 84px 92px 112px 112px 118px 88px 104px;gap:0 10px;}
+}
+@media(max-width:980px){
   .paso-intro{grid-template-columns:1fr;gap:12px;}.ayuda-paso{justify-self:start;}
-  .mapa-wrap{height:auto;overflow:visible;background:none;box-shadow:none;border-radius:0;display:flex;flex-direction:column;gap:14px;}
-  .mapa-wrap.full{display:block;}
-  #mapaBusquedaWrap{position:relative;inset:auto;height:480px;order:2;border-radius:20px;overflow:hidden;box-shadow:var(--sombra);}
-  .mapa-wrap.full #mapaBusquedaWrap{position:absolute;inset:0;height:100%;border-radius:0;}
-  .flot{position:relative;inset:auto;}.capsula{order:1;flex-wrap:wrap;max-width:none;}
-  .capsula select,.capsula .campo-texto input,.capsula #campoBarrioMulti{width:100%;}.capsula .field{flex:1 1 100%;border-left:0!important;}
-  .zona{order:3;width:auto;max-height:560px;}.dock{order:4;flex-wrap:wrap;}
-  .mapa-toolbar.flot{position:absolute;left:14px;bottom:14px;}
-  #btnFull{position:absolute;top:14px;right:70px;}
+  .tabla-cab{display:none;}
+  .listado .res-row{grid-template-columns:1fr 1fr 1fr;gap:6px 12px;padding:14px 16px 14px 22px;}
+  .listado .res-row::before{left:8px;}
+  .res-row .c-dir{grid-column:1/-1;}
+  .res-row .c-tipo{grid-column:1;}.res-row .c-fecha{grid-column:2/4;text-align:right;}
+  .res-row .c-precio,.res-row .c-m2,.res-row .c-rate{text-align:left;}
+  .res-row .c-ficha{grid-column:1/3;}.res-row .c-acc{grid-column:3;}
+  .res-row .c-precio::before{content:"Precio";display:block;font:500 11px var(--ui);color:var(--pizarra);letter-spacing:.06em;text-transform:uppercase;}
+  .res-row .c-m2::before{content:"m²";display:block;font:500 11px var(--ui);color:var(--pizarra);letter-spacing:.06em;text-transform:uppercase;}
+  .res-row .c-rate::before{content:"$/m²";display:block;font:500 11px var(--ui);color:var(--pizarra);letter-spacing:.06em;text-transform:uppercase;}
+  .res-group-children .res-row{padding-left:30px;}
+  .listado-cab{padding:18px 16px 10px;}
+  .filtros-barra #campoBarrioMulti,.filtros-barra .field.f-tipo,.filtros-barra .field.f-antig,.filtros-barra .campo-texto{width:100%;flex:1 1 100%;}
+  .dock{flex-wrap:wrap;top:70px;}
+}
+@media(max-width:700px){
+  .dock{flex-direction:column;align-items:stretch;gap:12px;padding:16px;position:static;}
+  .dock .prom{border-left:0;padding-left:0;text-align:left;max-width:none;border-top:1px solid rgba(255,255,255,.12);padding-top:12px;}
+  .dock .cta{text-align:center;}
+  .brand .tag{display:none;}.masthead-in{gap:8px;}.brand{gap:8px;}.brand h1{font-size:16px;}.cotiz-valor{white-space:nowrap;font-size:13px;}.cotiz-chip .fila-cotiz{gap:8px;}.cotiz-chip .btn-ghost{padding:6px 12px;}
+  .panel{padding:22px 18px;}.tarjeta{padding:22px 18px;}
   .hero-panel #listaReferencias{grid-template-columns:1fr;}
 }
 /* ===== Parte 3: formulario, resultado y presentación ===== */
@@ -302,14 +361,6 @@ body.modo-cliente #panelPresentacion{display:block;}
   #resultadoPanel{grid-template-columns:1fr;padding:34px 24px;border-radius:26px;}
   #resultadoPanel > h2:nth-of-type(2),#resultadoPanel table.cierre,#resultadoPanel .headline,#resultadoPanel .breakdown,#resultadoPanel .footnote{grid-column:1;grid-row:auto;}
   #resultadoPanel > h2:nth-of-type(2){margin-top:26px;}
-}
-@media(max-width:700px){
-  .brand .tag{display:none;}.masthead-in{gap:8px;}.brand{gap:8px;}.brand h1{font-size:16px;}.cotiz-valor{white-space:nowrap;font-size:13px;}.cotiz-chip .fila-cotiz{gap:8px;}.cotiz-chip .btn-ghost{padding:6px 12px;}
-  .dock{flex-direction:column;align-items:stretch;gap:14px;padding:18px;}
-  .dock .prom{border-left:0;padding-left:0;text-align:left;max-width:none;border-top:1px solid rgba(255,255,255,.12);padding-top:12px;}
-  .dock .cta{text-align:center;}
-  .zona .res-row .side{min-width:0;}
-  .panel{padding:22px 18px;}.tarjeta{padding:22px 18px;}
 }
 @media(max-width:900px){.masthead-in{grid-template-columns:1fr auto;padding:12px 16px;}.pasos{display:none;}.wrap{padding:20px 16px 80px;}}
 @media(max-width:640px){.grid2,.grid3,.grid4,.breakdown,.comparables-grid{grid-template-columns:1fr;}.headline .valor{font-size:48px;}.pres-actions{flex-direction:column;}.cotiz-pop{width:min(340px,calc(100vw - 32px));}}
@@ -365,6 +416,39 @@ body.modo-cliente #panelPresentacion{display:block;}
     </div>
 
     <div id="buscadorPanel">
+      <div class="base-toggle" role="group" aria-label="Base de búsqueda">
+        <span>Buscando en:</span>
+        <button type="button" class="base-btn active" id="baseVendidasBtn" aria-pressed="true">Vendidas · <b id="cuentaVendidas">—</b></button>
+        <button type="button" class="base-btn" id="baseOfrecidasBtn" aria-pressed="false">Ofrecidas · <b id="cuentaOfrecidas">—</b></button>
+      </div>
+      <div class="filtros-barra">
+        <div class="modo-toggle">
+          <button type="button" class="modo-btn active" id="modoBarrioBtn">Por barrio</button>
+          <button type="button" class="modo-btn" id="modoMapaBtn">Dibujar en el mapa</button>
+        </div>
+        <div class="field" id="campoBarrioMulti">
+          <label>Barrio / Ciudad</label>
+          <div class="multiselect" id="barrioMulti">
+            <button type="button" class="ms-trigger" id="msTrigger">
+              <span id="msTriggerText">Todos los barrios</span>
+              <span class="ms-caret">▾</span>
+            </button>
+            <div class="ms-panel" id="msPanel">
+              <input type="text" id="msSearch" placeholder="Buscar barrio…" autocomplete="off">
+              <div class="ms-list" id="msList"></div>
+            </div>
+          </div>
+          <div class="ms-chips" id="msChips"></div>
+        </div>
+        <div class="field f-tipo"><label>Tipo de propiedad</label><select id="buscarSubtipo"></select></div>
+        <div class="field f-antig"><label>Antigüedad</label><select id="buscarAntiguedad">
+          <option value="12">Últimos 12 meses</option>
+          <option value="18" selected>Últimos 18 meses</option>
+          <option value="24">Últimos 24 meses</option>
+        </select></div>
+        <div class="field campo-texto"><label>Buscar por ID o dirección</label><input type="text" id="buscarTexto" placeholder="ej. 36726 o Terrenos Luque"></div>
+      </div>
+
       <div class="mapa-wrap modo-barrio" id="mapaBox">
         <div id="mapaBusquedaWrap">
           <div id="mapaBusqueda"></div>
@@ -374,47 +458,33 @@ body.modo-cliente #panelPresentacion{display:block;}
             <button type="button" class="btn-ghost" id="btnLimpiarMapa">Borrar dibujo</button>
           </div>
         </div>
-
-        <div class="flot capsula">
-          <div class="modo-toggle">
-            <button type="button" class="modo-btn active" id="modoBarrioBtn">Por barrio</button>
-            <button type="button" class="modo-btn" id="modoMapaBtn">Dibujar en el mapa</button>
-          </div>
-          <div class="field" id="campoBarrioMulti">
-            <label class="sr">Barrio / Ciudad (elegí uno o varios)</label>
-            <div class="multiselect" id="barrioMulti">
-              <button type="button" class="ms-trigger" id="msTrigger">
-                <span id="msTriggerText">Todos los barrios</span>
-                <span class="ms-caret">▾</span>
-              </button>
-              <div class="ms-panel" id="msPanel">
-                <input type="text" id="msSearch" placeholder="Buscar barrio…" autocomplete="off">
-                <div class="ms-list" id="msList"></div>
-              </div>
-            </div>
-            <div class="ms-chips" id="msChips"></div>
-          </div>
-          <div class="field"><label class="sr">Tipo de propiedad</label><select id="buscarSubtipo"></select></div>
-          <div class="field"><label class="sr">Antigüedad</label><select id="buscarAntiguedad">
-            <option value="12">Últimos 12 meses</option>
-            <option value="18" selected>Últimos 18 meses</option>
-            <option value="24">Últimos 24 meses</option>
-          </select></div>
-        </div>
-
-        <aside class="flot zona">
-          <header><h3>Resultados</h3>
-            <div class="field campo-texto"><label class="sr">Buscar por ID o dirección (opcional)</label><input type="text" id="buscarTexto" placeholder="Buscar por ID o dirección"></div>
-          </header>
-          <div id="resultadosBusqueda"></div>
-        </aside>
-
-        <div class="flot dock">
-          <div class="t"><div class="lbl"><span>Tus referencias</span><span id="dockCuenta">0 referencias</span></div><div id="dockRefs"></div></div>
-          <div class="prom"><small>Promedio de terreno</small><div class="n" id="dockProm">—</div><div class="s" id="dockSub">Sumá referencias para ver el promedio</div></div>
-          <a class="cta" href="#paso2">Continuar →</a>
-        </div>
       </div>
+
+      <div class="dock" id="dock">
+        <div class="t"><div class="lbl"><span>Tus referencias</span><span id="dockCuenta">0 referencias</span></div><div id="dockRefs"></div></div>
+        <div class="prom"><small>Promedio de terreno</small><div class="n" id="dockProm">—</div><div class="s" id="dockSub">Sumá referencias para ver el promedio</div></div>
+        <a class="cta" href="#paso2">Continuar →</a>
+      </div>
+
+      <section class="listado" id="listadoVentas">
+        <div class="listado-cab">
+          <div>
+            <h3 id="listadoTitulo">Ventas encontradas</h3>
+            <p class="listado-nota" id="listadoNota">La ubicación de algunas ventas puede estar mal cargada en 21online. Usá este listado como guía principal y abrí la ficha para confirmar antes de sumar una referencia.</p>
+          </div>
+          <div class="orden field"><label for="ordenListado">Ordenar por</label>
+            <select id="ordenListado">
+              <option value="reciente">Más recientes primero</option>
+              <option value="rate_asc">$/m² más bajo primero</option>
+              <option value="rate_desc">$/m² más alto primero</option>
+              <option value="precio_asc" id="optPrecioAsc">Precio de venta más bajo</option>
+              <option value="precio_desc" id="optPrecioDesc">Precio de venta más alto</option>
+            </select>
+          </div>
+        </div>
+        <div class="tabla-cab"><span>Dirección</span><span>Tipo</span><span id="cabFecha">Cierre</span><span class="r" id="cabPrecio">Precio de venta</span><span class="r">m²</span><span class="r">$/m²</span><span>Ficha</span><span></span></div>
+        <div id="resultadosBusqueda"></div>
+      </section>
     </div>
 
     <h3 class="sub-h">Tus referencias</h3>
@@ -525,8 +595,24 @@ body.modo-cliente #panelPresentacion{display:block;}
 let DATA = [];
 // Base64-encoded from assets/logo-c21-white.png — regenerate that encoding if the logo image ever changes.
 const LOGO_C21_BASE64 = "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";
+let OFRECIDAS = null; // ofrecidas de Century (en venta hoy); null si no se pudieron cargar
+
+// Las ofrecidas son opcionales: si no cargan, el AMC funciona igual con las vendidas. Nunca tira error.
+async function cargarOfrecidas(){
+  try{
+    const resp = await fetch('https://raw.githubusercontent.com/waldofer/c21-cerradas-data/main/data/ofrecidas.json', {signal: AbortSignal.timeout(90000)});
+    if(!resp.ok) return null;
+    const lista = await resp.json();
+    if(!Array.isArray(lista)) return null;
+    return lista.filter(d => d && d.pp>0 && d.mt>0 && (d.mon==='USD' || d.mon==='PYG') && /^\d{4}-\d{2}-\d{2}$/.test(d.fa || ''));
+  } catch(e){
+    return null;
+  }
+}
+
 async function _init(){
   const overlay = document.getElementById('cargandoOverlay');
+  const promesaOfrecidas = cargarOfrecidas(); // se baja en paralelo a las vendidas
   try{
     const resp = await fetch('https://raw.githubusercontent.com/waldofer/c21-cerradas-data/main/data/cerradas.json');
     // px = precio dudoso (posible Gs cargado como USD), pendiente de revision manual: no se usa para tasar.
@@ -535,7 +621,7 @@ async function _init(){
     document.body.innerHTML = '<div style="padding:40px;font-family:Helvetica,Arial,sans-serif;color:#c0654f;">No se pudo cargar el dataset desde GitHub. Revisá tu conexión o que el repo c21-cerradas-data exista y sea público.</div>';
     return;
   }
-  if(overlay) overlay.style.display='none';
+  if(overlay) overlay.style.display='none'; // no se espera a las ofrecidas: el AMC abre igual que siempre
 
 // Nombres tal como los muestra 21online en su filtro "Tipo Propiedad" (en los datos es el campo `su`).
 // La "Clasificación" (habitacional/comercial/rural, campo `ti`) no se usa para buscar y no se muestra.
@@ -564,33 +650,73 @@ function tituloCase(str){
   return str.toLowerCase().replace(/(^|[\s\-.,])([a-záéíóúñ])/g, (m,pre,c)=> pre+c.toUpperCase());
 }
 
-function colorRecencia(fc){
+function colorRecencia(fc, ofrecida){
   const dias = Math.round((new Date() - new Date(fc+'T12:00:00')) / (1000*60*60*24));
+  if(ofrecida){ // ofrecidas, en azul: recién publicada / hasta 2 años / más vieja
+    if(dias<=90) return 'var(--azul)';
+    if(dias<=730) return 'var(--azulhi)';
+    return '#B8C0CA';
+  }
   if(dias<=90) return 'var(--dorado)';
   if(dias<=270) return 'var(--dorado-soft)';
   return '#B8C0CA';
 }
 
+function fechaCorta(fc){ const [a,m,d] = fc.split('-'); return `${d}/${m}/${a}`; }
+
+// ---------- Vendidas y ofrecidas: lo que cambia entre una y otra ----------
+// Vendida: precio de venta en USD (pr) y fecha de cierre (fc). Ofrecida: precio pedido (pp) en su moneda (mon) y fecha de publicación (fa).
+function esOfrecida(d){ return d.pp !== undefined; }
+function fechaDe(d){ return esOfrecida(d) ? d.fa : d.fc; }
+function fechaEvalActual(){ return document.getElementById('subFechaEval').value || hoyStr(); }
+// Gs/USD de la fecha del AMC, solo para MOSTRAR el $/m² de las ofrecidas en guaraníes en el listado (no entra en ningún cálculo).
+let cotizListado = null;
+function precioUsdLista(d){
+  if(!esOfrecida(d)) return d.pr;
+  if(d.mon==='USD') return d.pp;
+  return cotizListado ? d.pp / cotizListado : null;
+}
+function precioTexto(d){
+  if(!esOfrecida(d)) return fmtUSD(d.pr);
+  return d.mon==='USD' ? fmtUSD(d.pp) : fmtGs(d.pp);
+}
+// Para agrupar lotes iguales: mismo precio exacto (y misma moneda, en las ofrecidas).
+function precioClave(d){ return esOfrecida(d) ? d.mon + ' ' + d.pp : d.pr; }
+// Años cumplidos entre la publicación y la fecha del AMC (2024-10-18 → 2026-10-18 = 2; 2024-10-19 → 2026-10-18 = 1).
+function aniosPublicada(fa, fechaEval){
+  const [a1,m1,d1] = fa.split('-').map(Number), [a2,m2,d2] = fechaEval.split('-').map(Number);
+  return a2 - a1 - ((m2<m1 || (m2===m1 && d2<d1)) ? 1 : 0);
+}
+// Marca para ofrecidas publicadas hace mucho (probablemente nunca dadas de baja): se marcan, no se ocultan.
+function textoAntiguedad(d){
+  const n = aniosPublicada(d.fa, fechaEvalActual());
+  return n>=2 ? `hace más de ${n} años` : '';
+}
+
 function filaResultadoHtml(d){
   const familia = familiaSubtipo(d.su);
   const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:subtipoLabel(d.su)}[familia];
-  const base = UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
-  const rate = (base && base>0) ? Math.round(d.pr/base) : null;
-  const etiquetaM2 = UNIT_SUBTYPES.has(d.su) ? 'm² propio' : 'm²';
+  const esUnidad = UNIT_SUBTYPES.has(d.su);
+  const base = esUnidad ? d.mc : d.mt;
+  const precioUsd = precioUsdLista(d);
+  const rate = (base && base>0 && precioUsd!==null) ? Math.round(precioUsd/base) : null;
+  const etiquetaM2 = esUnidad ? 'm² propio' : 'm²';
+  const construido = (!esUnidad && d.mc>0) ? `<small>${d.mc} m² construidos</small>` : '';
+  const agregada = referencias.some(r=>r.data.id===d.id);
+  const ofr = esOfrecida(d);
+  // ofrecida: debajo de la dirección va el título del aviso (muchas direcciones vienen vacías o pobres)
+  const avisoHtml = ofr && d.en ? `<div class="aviso" title="${escHtml(d.en)}">${escHtml(d.en)}</div>` : '';
+  const antig = ofr ? textoAntiguedad(d) : '';
   return `
-    <div class="res-row" style="--recencia:${colorRecencia(d.fc)}">
-      <div class="main">
-        <div class="dir">${tituloCase(d.dir)||'(sin dirección)'} <span class="barrio">— ${d.mu}</span></div>
-        <div class="meta">
-          <span class="pill pill-${familia}">${pillLabel}</span>
-          <span class="idfecha"><a class="ficha-link" href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener" title="Abrir la ficha de vendido en 21online">ID ${d.id} ↗</a> · ${d.fc}</span>
-        </div>
-      </div>
-      <div class="side">
-        <div class="m2rate">${rate!==null ? '$'+rate.toLocaleString('es-PY') : '—'}<small>${rate!==null ? ' /'+etiquetaM2 : ''}</small></div>
-        <div class="total">USD ${Math.round(d.pr).toLocaleString('es-PY')} · ${base||'—'} ${etiquetaM2}</div>
-        <button class="btn-ghost" data-id="${d.id}">Agregar</button>
-      </div>
+    <div class="res-row" style="--recencia:${colorRecencia(fechaDe(d), ofr)}">
+      <div class="c-dir"><div class="dir">${escHtml(tituloCase(d.dir))||'(sin dirección)'}</div>${avisoHtml}<div class="barrio">${d.mu}</div></div>
+      <div class="c-tipo"><span class="pill pill-${familia}">${pillLabel}</span></div>
+      <div class="c-fecha">${fechaCorta(fechaDe(d))}${antig ? `<small class="antig">${antig}</small>` : ''}</div>
+      <div class="c-precio">${precioTexto(d)}</div>
+      <div class="c-m2">${base||'—'} ${etiquetaM2}${construido}</div>
+      <div class="c-rate">${rate!==null ? '$'+rate.toLocaleString('es-PY') : '—'}<small> /${etiquetaM2}</small></div>
+      <div class="c-ficha"><a class="ficha-link" href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener" title="${ofr ? 'Abrir la ficha en 21online' : 'Abrir la ficha de vendido en 21online'}">ID ${d.id} ↗</a></div>
+      <div class="c-acc"><button class="btn-ghost${agregada?' ok':''}" data-id="${d.id}"${agregada?' disabled':''}>${agregada?'Agregada ✓':'Agregar'}</button></div>
     </div>`;
 }
 
@@ -618,9 +744,9 @@ function grupoResumenHtml(items, grupoId){
   const baseDe = (d)=> UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
   const base = baseDe(d0);
   const etiquetaM2 = UNIT_SUBTYPES.has(d0.su) ? 'm² propio' : 'm²';
-  const uniformePrecio = items.every(x=>x.pr===d0.pr);
+  const uniformePrecio = items.every(x=>precioClave(x)===precioClave(d0));
   const uniformeBase = items.every(x=>baseDe(x)===base);
-  const rates = items.map(x=>{ const b=baseDe(x); return (b && b>0) ? Math.round(x.pr/b) : null; }).filter(r=>r!==null);
+  const rates = items.map(x=>{ const b=baseDe(x), p=precioUsdLista(x); return (b && b>0 && p!==null) ? Math.round(p/b) : null; }).filter(r=>r!==null);
   let m2rateHtml;
   if(rates.length===0){
     m2rateHtml = '—';
@@ -633,25 +759,21 @@ function grupoResumenHtml(items, grupoId){
       m2rateHtml = `$${min.toLocaleString('es-PY')}&ndash;${max.toLocaleString('es-PY')}<small> /${etiquetaM2}</small>`;
     }
   }
-  const totalHtml = uniformePrecio ? 'USD '+Math.round(d0.pr).toLocaleString('es-PY')+' c/u' : 'Precios varían';
+  const totalHtml = uniformePrecio ? precioTexto(d0)+' c/u' : 'Precios varían';
   const areaHtml = uniformeBase ? `${base||'—'} ${etiquetaM2}` : `${etiquetaM2} varían`;
-  const fechas = items.map(x=>x.fc).sort();
+  const fechas = items.map(fechaDe).sort();
   const fechaMasVieja = fechas[0], fechaMasNueva = fechas[fechas.length-1];
-  const uniformeFecha = fechaMasVieja === fechaMasNueva;
-  const fechaTexto = uniformeFecha ? d0.fc : `${fechaMasVieja} a ${fechaMasNueva}`;
+  const fechaTexto = fechaMasVieja === fechaMasNueva ? fechaCorta(fechaDe(d0)) : `${fechaCorta(fechaMasVieja)} a ${fechaCorta(fechaMasNueva)}`;
   return `
-    <div class="res-row res-group-head" style="--recencia:${colorRecencia(fechaMasVieja)}" data-grupo="${grupoId}">
-      <div class="main">
-        <div class="dir">${tituloCase(d0.dir)||'(sin dirección)'} <span class="barrio">— ${d0.mu}</span></div>
-        <div class="meta">
-          <span class="pill pill-${familia}">${pillLabel}</span>
-          <span class="idfecha">${items.length} lotes · ${fechaTexto}</span> <span class="chevron">▾ Ver los ${items.length} lotes</span>
-        </div>
-      </div>
-      <div class="side">
-        <div class="m2rate">${m2rateHtml}</div>
-        <div class="total">${totalHtml} · ${areaHtml}</div>
-      </div>
+    <div class="res-row res-group-head" style="--recencia:${colorRecencia(fechaMasVieja, esOfrecida(d0))}" data-grupo="${grupoId}">
+      <div class="c-dir"><div class="dir">${escHtml(tituloCase(d0.dir))||'(sin dirección)'}</div><div class="barrio">${d0.mu} · ${items.length} lotes <span class="chevron">▾ Ver los ${items.length} lotes</span></div></div>
+      <div class="c-tipo"><span class="pill pill-${familia}">${pillLabel}</span></div>
+      <div class="c-fecha">${fechaTexto}</div>
+      <div class="c-precio">${totalHtml}</div>
+      <div class="c-m2">${areaHtml}</div>
+      <div class="c-rate">${m2rateHtml}</div>
+      <div class="c-ficha"></div>
+      <div class="c-acc"></div>
     </div>
     <div class="res-group-children" id="grupo-${grupoId}" style="display:none;">
       ${items.map(filaResultadoHtml).join('')}
@@ -729,7 +851,18 @@ document.getElementById('subFechaEval').value = hoyStr();
 document.getElementById('subFechaEval').addEventListener('input', ()=>{
   ejecutarBusqueda();
   renderReferencias();
+  actualizarCotizListado();
+  actualizarCotizacionesOfrecidas();
 });
+// Cotización de la fecha del AMC para el $/m² del listado de ofrecidas. Si la fecha cambió mientras se buscaba, se descarta.
+async function actualizarCotizListado(){
+  const fecha = fechaEvalActual();
+  const c = await obtenerCotizacionFecha(fecha);
+  if(fecha !== fechaEvalActual()) return;
+  cotizListado = c;
+  if(baseActiva==='ofrecidas') ejecutarBusqueda();
+}
+actualizarCotizListado();
 
 
 // ---------- Buscador de referencias ----------
@@ -741,7 +874,9 @@ const buscarAntiguedad = document.getElementById('buscarAntiguedad');
 const resultadosBusqueda = document.getElementById('resultadosBusqueda');
 
 let antiguedadMeses = parseInt(buscarAntiguedad.value);
-let resultadosVisibles = 30, firmaBusqueda = '';
+const PAGINA = 50; // filas que se muestran por vez en el listado
+let resultadosVisibles = PAGINA, firmaBusqueda = '';
+let referencias = []; // {data, rateConstr (Gs/m², asignado por el usuario), cotizHist (Gs/USD de esa fecha), cotizManual, cargando}
 
 function fechaLimiteAntiguedad(){
   const base = document.getElementById('subFechaEval').value || hoyStr();
@@ -750,14 +885,62 @@ function fechaLimiteAntiguedad(){
   return d;
 }
 
+// Base que se ve en el mapa y el listado: 'vendidas' u 'ofrecidas'. Nunca las dos juntas.
+let baseActiva = 'vendidas';
+function datosBase(){ return baseActiva==='ofrecidas' ? OFRECIDAS : DATA; }
+
 function poblarFiltrosBusqueda(){
-  // Mismo criterio que 21online: lista alfabética con la cantidad entre paréntesis.
+  // Mismo criterio que 21online: lista alfabética con la cantidad entre paréntesis (de la base que se está viendo).
+  const elegido = buscarSubtipo.value;
   const cuenta = {};
-  DATA.forEach(d=>{ cuenta[d.su] = (cuenta[d.su]||0) + 1; });
+  datosBase().forEach(d=>{ cuenta[d.su] = (cuenta[d.su]||0) + 1; });
   const subs = Object.keys(cuenta).sort((a,b)=>subtipoLabel(a).localeCompare(subtipoLabel(b),'es'));
   buscarSubtipo.innerHTML = '<option value="">Todos los tipos</option>' +
     subs.map(s=>`<option value="${s}">${subtipoLabel(s)} (${cuenta[s].toLocaleString('es-PY')})</option>`).join('');
+  buscarSubtipo.value = cuenta[elegido] ? elegido : ''; // el tipo elegido se mantiene si existe en esta base
 }
+
+// ---------- Selector de base: Vendidas | Ofrecidas ----------
+const baseVendidasBtn = document.getElementById('baseVendidasBtn');
+const baseOfrecidasBtn = document.getElementById('baseOfrecidasBtn');
+document.getElementById('cuentaVendidas').textContent = DATA.length.toLocaleString('es-PY');
+// Las ofrecidas se bajan en paralelo: hasta que llegan, el botón dice "cargando…" y no se puede elegir.
+function mostrarEstadoOfrecidas(estado){
+  const cuenta = document.getElementById('cuentaOfrecidas');
+  baseOfrecidasBtn.disabled = !OFRECIDAS;
+  baseOfrecidasBtn.title = estado==='error' ? 'No se pudieron cargar las ofrecidas. Recargá la página más tarde.' : '';
+  cuenta.textContent = OFRECIDAS ? OFRECIDAS.length.toLocaleString('es-PY') : (estado==='error' ? 'no disponible' : 'cargando…');
+}
+mostrarEstadoOfrecidas('cargando');
+promesaOfrecidas.then(lista=>{
+  OFRECIDAS = lista;
+  mostrarEstadoOfrecidas(lista ? 'ok' : 'error');
+});
+// Textos del listado que cambian con la base (los de vendidas son los que ya trae la página).
+const TEXTOS_BASE = {vendidas:{}, ofrecidas:{
+  listadoTitulo: 'Ofrecidas en venta',
+  listadoNota: 'Precio pedido por el propietario al publicar: no es precio de venta. La ubicación de algunas puede estar mal cargada en 21online; abrí la ficha para confirmar antes de sumarla.',
+  cabFecha: 'Publicada', cabPrecio: 'Precio pedido',
+  optPrecioAsc: 'Precio pedido más bajo', optPrecioDesc: 'Precio pedido más alto',
+}};
+Object.keys(TEXTOS_BASE.ofrecidas).forEach(id=>{ TEXTOS_BASE.vendidas[id] = document.getElementById(id).textContent; });
+// Al cambiar de base se conservan los filtros (barrio, tipo, texto, zona dibujada, orden) y las referencias ya sumadas.
+function cambiarBase(base){
+  if(base===baseActiva || (base==='ofrecidas' && !OFRECIDAS)) return;
+  baseActiva = base;
+  baseVendidasBtn.classList.toggle('active', base==='vendidas');
+  baseOfrecidasBtn.classList.toggle('active', base==='ofrecidas');
+  baseVendidasBtn.setAttribute('aria-pressed', base==='vendidas');
+  baseOfrecidasBtn.setAttribute('aria-pressed', base==='ofrecidas');
+  buscadorPanel.classList.toggle('base-ofrecidas', base==='ofrecidas');
+  const t = TEXTOS_BASE[base];
+  Object.keys(t).forEach(id=>{ document.getElementById(id).textContent = t[id]; });
+  poblarFiltrosBusqueda();
+  renderMsList(municipiosDisponibles());
+  ejecutarBusqueda();
+}
+baseVendidasBtn.addEventListener('click', ()=>cambiarBase('vendidas'));
+baseOfrecidasBtn.addEventListener('click', ()=>cambiarBase('ofrecidas'));
 buscarAntiguedad.addEventListener('change', ()=>{
   antiguedadMeses = parseInt(buscarAntiguedad.value);
   ejecutarBusqueda();
@@ -818,23 +1001,26 @@ function actualizarMsTriggerText(){
   else if(municipiosSeleccionados.length===1) t.textContent = municipiosSeleccionados[0];
   else t.textContent = `${municipiosSeleccionados.length} barrios seleccionados`;
 }
+// Barrios de la base que se está viendo, más los ya elegidos (así un barrio que solo existe en la otra base se puede destildar).
+function municipiosDisponibles(){
+  return [...new Set([...datosBase().map(d=>d.mu), ...municipiosSeleccionados])].sort((a,b)=>a.localeCompare(b,'es'));
+}
 function inicializarMultiselectBarrios(){
-  const municipios = [...new Set(DATA.map(d=>d.mu))].sort((a,b)=>a.localeCompare(b,'es'));
-  renderMsList(municipios);
+  renderMsList(municipiosDisponibles());
   const trigger = document.getElementById('msTrigger');
   const panel = document.getElementById('msPanel');
   const search = document.getElementById('msSearch');
   trigger.addEventListener('click', (e)=>{
     e.stopPropagation();
     panel.classList.toggle('open');
-    if(panel.classList.contains('open')){ search.value=''; renderMsList(municipios); search.focus(); }
+    if(panel.classList.contains('open')){ search.value=''; renderMsList(municipiosDisponibles()); search.focus(); }
   });
   document.addEventListener('click', (e)=>{
     if(!document.getElementById('barrioMulti').contains(e.target)) panel.classList.remove('open');
   });
   search.addEventListener('input', ()=>{
     const q = search.value.trim().toLowerCase();
-    renderMsList(municipios.filter(m=>m.toLowerCase().includes(q)));
+    renderMsList(municipiosDisponibles().filter(m=>m.toLowerCase().includes(q)));
   });
 }
 inicializarMultiselectBarrios();
@@ -935,15 +1121,18 @@ function popupDeGrupo(v){
   const yaEsta = id => referencias.some(r=>r.data.id===id);
   const filas = v.map(d=>{
     const base = UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt;
-    const rate = (base && base>0) ? Math.round(d.pr/base) : null;
+    const precioUsd = precioUsdLista(d);
+    const rate = (base && base>0 && precioUsd!==null) ? Math.round(precioUsd/base) : null;
     const etiqueta = UNIT_SUBTYPES.has(d.su) ? 'm² propio' : 'm²';
     const ok = yaEsta(d.id);
     return `<div class="v"><b>${rate!==null ? '$'+rate.toLocaleString('es-PY') : '—'}<small> /${etiqueta}</small></b>
-      <span class="d">USD ${Math.round(d.pr).toLocaleString('es-PY')} · ${base||'—'} ${etiqueta} · ${d.fc}</span>
+      <span class="d">${esOfrecida(d)
+        ? `Precio pedido ${precioTexto(d)} · ${base||'—'} ${etiqueta} · Publicada ${fechaCorta(d.fa)}`
+        : `${precioTexto(d)} · ${base||'—'} ${etiqueta} · ${d.fc}`}</span>
       <div class="acc"><button type="button" class="btn-ghost${ok?' ok':''}" data-add="${d.id}"${ok?' disabled':''}>${ok?'Agregada ✓':'Agregar'}</button>
       <a class="ficha-link" href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener">Ver ficha en 21online ↗</a></div></div>`;
   }).join('');
-  return `<div class="pop"><h5>${escHtml(tituloCase(v[0].dir)||'(sin dirección)')}</h5><div class="z">${escHtml(v[0].mu)} · ${v.length} ${v.length>1 ? 'ventas en este punto' : 'venta'}</div><div class="lista">${filas}</div></div>`;
+  return `<div class="pop"><h5>${escHtml(tituloCase(v[0].dir)||'(sin dirección)')}</h5><div class="z">${escHtml(v[0].mu)} · ${v.length} ${esOfrecida(v[0]) ? (v.length>1 ? 'en venta en este punto' : 'en venta') : (v.length>1 ? 'ventas en este punto' : 'venta')}</div><div class="lista">${filas}</div></div>`;
 }
 
 // Redibuja los puntos con el mismo tipo, texto, antigüedad (y barrios, en modo barrio) que la lista.
@@ -952,26 +1141,28 @@ function actualizarPuntosMapa(){
   const q = buscarTexto.value.trim().toLowerCase();
   const sub = buscarSubtipo.value;
   const limite = fechaLimiteAntiguedad();
+  const ofrecidas = baseActiva==='ofrecidas'; // las ofrecidas no se filtran por antigüedad: se ven todas las que siguen en venta
   const barrios = (modoBusqueda==='barrio' && municipiosSeleccionados.length>0) ? municipiosSeleccionados : null;
   capaPuntosBusqueda.clearLayers();
   const grupos = new Map();
-  DATA.forEach(d=>{
+  datosBase().forEach(d=>{
     if(!d.la || !d.lo) return;
     if(!coincideTextoYSubtipo(d, sub, q)) return;
-    if(new Date(d.fc+'T12:00:00') < limite) return;
+    if(!ofrecidas && new Date(d.fc+'T12:00:00') < limite) return;
     if(barrios && !barrios.includes(d.mu)) return;
     const k = d.la.toFixed(5)+','+d.lo.toFixed(5);
     if(!grupos.has(k)) grupos.set(k, []);
     grupos.get(k).push(d);
   });
   const ancho = window.innerWidth > 1100;
-  const pad = {maxWidth:340, autoPanPaddingTopLeft: ancho ? [440,90] : [20,20], autoPanPaddingBottomRight: ancho ? [30,130] : [20,20]};
+  const pad = {maxWidth:340, autoPanPaddingTopLeft: [20,70], autoPanPaddingBottomRight: [20,20]};
+  const relleno = ofrecidas ? '#2E6DA4' : '#B3862A', borde = ofrecidas ? '#1F4E7A' : '#8a6718';
   grupos.forEach(v=>{
-    v.sort((a,b)=> b.fc.localeCompare(a.fc));
+    v.sort((a,b)=> fechaDe(b).localeCompare(fechaDe(a)));
     const multi = v.length > 1;
     L.circleMarker([v[0].la, v[0].lo], multi
-      ? {radius: 6 + Math.min(6, Math.log2(v.length)*2.2), color:'#8a6718', weight:1.5, fillColor:'#B3862A', fillOpacity:0.28}
-      : {radius:4, color:'#ffffff', weight:1, fillColor:'#B3862A', fillOpacity:0.95})
+      ? {radius: 6 + Math.min(6, Math.log2(v.length)*2.2), color:borde, weight:1.5, fillColor:relleno, fillOpacity:0.28}
+      : {radius:4, color:'#ffffff', weight:1, fillColor:relleno, fillOpacity:0.95})
       .bindPopup(()=>popupDeGrupo(v), pad)
       .addTo(capaPuntosBusqueda);
   });
@@ -1024,32 +1215,43 @@ function ejecutarBusqueda(){
     return true;
   }
 
-  let resultados = DATA.filter(d=> coincideSinVentana(d) && !(new Date(d.fc+'T12:00:00') < limiteAntiguedad));
-  resultados.sort((a,b)=> new Date(b.fc)-new Date(a.fc));
+  const ofrecidas = baseActiva==='ofrecidas'; // las ofrecidas no se filtran por antigüedad
+  let resultados = datosBase().filter(d=> coincideSinVentana(d) && (ofrecidas || !(new Date(d.fc+'T12:00:00') < limiteAntiguedad)));
+  const rateDe = d => { const b = UNIT_SUBTYPES.has(d.su) ? d.mc : d.mt, p = precioUsdLista(d); return (b && b>0 && p!==null) ? p/b : null; };
+  const orden = document.getElementById('ordenListado').value;
+  // valor nulo (sin m² o, en ofrecidas en Gs., sin cotización) siempre al final
+  const porValor = (valor, sentido)=> (a,b)=>{ const ra = valor(a), rb = valor(b); if(ra===null && rb===null) return 0; if(ra===null) return 1; if(rb===null) return -1; return sentido*(ra-rb); };
+  resultados.sort({
+    reciente:    (a,b)=> new Date(fechaDe(b))-new Date(fechaDe(a)),
+    rate_asc:    porValor(rateDe, 1),
+    rate_desc:   porValor(rateDe, -1),
+    precio_asc:  porValor(precioUsdLista, 1),
+    precio_desc: porValor(precioUsdLista, -1),
+  }[orden]);
   const totalCoincidencias = resultados.length;
-  // Sin tope fijo: se muestran de a 30 y "Mostrar más" suma otros 30. Al cambiar cualquier filtro se vuelve a 30.
-  const firma = JSON.stringify([q, sub, antiguedadMeses, modoBusqueda, municipiosSeleccionados, areaDibujadaBusqueda]);
-  if(firma!==firmaBusqueda){ firmaBusqueda = firma; resultadosVisibles = 30; }
+  // Sin tope fijo: se muestran de a PAGINA y "Mostrar más" suma otras PAGINA. Al cambiar cualquier filtro u orden se vuelve a la primera página.
+  const firma = JSON.stringify([baseActiva, q, sub, antiguedadMeses, modoBusqueda, municipiosSeleccionados, areaDibujadaBusqueda, orden]);
+  if(firma!==firmaBusqueda){ firmaBusqueda = firma; resultadosVisibles = PAGINA; }
   resultados = resultados.slice(0, resultadosVisibles);
   const restantes = totalCoincidencias - resultados.length;
 
   const contadorHtml = totalCoincidencias>0
-    ? `<div class="m" style="padding:6px 10px;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.7;">Mostrando ${resultados.length} de ${totalCoincidencias} cierres dentro de los últimos ${antiguedadMeses} meses</div>`
+    ? `<div class="m" style="padding:6px 10px;font-family:Helvetica,Arial,sans-serif;font-size:11.5px;color:var(--hueso-dim);opacity:0.7;">Mostrando ${resultados.length} de ${totalCoincidencias} ${ofrecidas ? 'ofrecidas en venta' : `cierres dentro de los últimos ${antiguedadMeses} meses`}</div>`
     : '';
 
   let mensajeVacio = 'Sin resultados.';
-  if(totalCoincidencias===0 && DATA.some(coincideSinVentana)){
+  if(totalCoincidencias===0 && !ofrecidas && DATA.some(coincideSinVentana)){
     mensajeVacio = `Sin resultados en los últimos ${antiguedadMeses} meses — probá ampliar la ventana de antigüedad.`;
   }
 
   const grupos = agruparConsecutivos(resultados);
   const filasHtml = grupos.map((g,i)=> g.items.length>1 ? grupoResumenHtml(g.items, i) : filaResultadoHtml(g.items[0])).join('');
   const masHtml = restantes>0
-    ? `<button type="button" class="btn-ghost" id="btnMasResultados" style="display:block;margin:12px auto;">Mostrar ${Math.min(30,restantes)} más (${restantes} restantes)</button>`
+    ? `<button type="button" class="btn-ghost" id="btnMasResultados" style="display:block;margin:12px auto;">Mostrar ${Math.min(PAGINA,restantes)} más (${restantes} restantes)</button>`
     : '';
   resultadosBusqueda.innerHTML = contadorHtml + (filasHtml || `<div class="m" style="padding:10px;font-family:Helvetica,Arial,sans-serif;font-size:12px;color:var(--hueso-dim)">${mensajeVacio}</div>`) + masHtml;
   const btnMas = resultadosBusqueda.querySelector('#btnMasResultados');
-  if(btnMas) btnMas.addEventListener('click', ()=>{ resultadosVisibles += 30; ejecutarBusqueda(); });
+  if(btnMas) btnMas.addEventListener('click', ()=>{ resultadosVisibles += PAGINA; ejecutarBusqueda(); });
 
   resultadosBusqueda.querySelectorAll('button[data-id]').forEach(b=>{
     b.addEventListener('click', ()=>{
@@ -1067,22 +1269,48 @@ function ejecutarBusqueda(){
   });
 }
 [buscarTexto, buscarSubtipo].forEach(el=>el.addEventListener('input', ejecutarBusqueda));
+document.getElementById('ordenListado').addEventListener('change', ejecutarBusqueda);
 
 
 // ---------- Referencias seleccionadas ----------
-let referencias = []; // {data, rateConstr (Gs/m², asignado por el usuario), cotizHist (Gs/USD de esa fecha), cotizManual, cargando}
 
 async function agregarReferencia(id){
   if(referencias.some(r=>r.data.id===id)) return;
-  const d = DATA.find(x=>x.id===id);
+  const d = datosBase().find(x=>x.id===id); // el botón "Agregar" siempre es de la base que se está viendo
   if(!d) return;
-  const ref = {data:d, rateConstr: null, cotizHist: undefined, cotizManual: null, cargando: true};
+  const enGs = esOfrecida(d) && d.mon==='PYG'; // ofrecida publicada en guaraníes: no necesita cotización
+  const ref = {data:d, rateConstr: null, cotizHist: undefined, cotizManual: null, cargando: !enGs};
   referencias.push(ref);
   renderReferencias();
+  if(enGs) return;
+  if(esOfrecida(d)){ await cotizarOfrecida(ref); return; }
   const rate = await obtenerCotizacionFecha(d.fc);
   ref.cotizHist = rate; // puede ser null si no se pudo obtener
   ref.cargando = false;
   renderReferencias();
+}
+
+// Ofrecida en USD: no tiene fecha de venta, así que se pasa a Gs. con la cotización de la fecha del AMC (la misma con la que
+// calcularTasacion vuelve el total a USD). Si la fecha cambia mientras se busca, gana la última: la respuesta vieja se descarta.
+async function cotizarOfrecida(ref){
+  const fecha = fechaEvalActual();
+  if(ref.cotizFecha !== fecha) ref.cotizManual = null; // la manual se cargó para otra fecha: no vale para esta
+  ref.cotizFecha = fecha;
+  ref.cotizHist = undefined;
+  ref.cargando = true;
+  const rate = await obtenerCotizacionFecha(fecha);
+  if(ref.cotizFecha !== fecha) return;
+  ref.cotizHist = rate; // null si no hay cotización para esa fecha: se pide a mano, nunca se usa un valor por defecto
+  ref.cargando = false;
+  renderReferencias();
+}
+// Al cambiar la fecha del AMC se recotizan las ofrecidas en USD (las vendidas usan la fecha de su venta y no cambian).
+async function actualizarCotizacionesOfrecidas(){
+  const refs = referencias.filter(r=>esOfrecida(r.data) && r.data.mon==='USD');
+  if(!refs.length) return;
+  const pendientes = refs.map(cotizarOfrecida);
+  renderReferencias();
+  await Promise.all(pendientes);
 }
 
 function quitarReferencia(id){
@@ -1106,12 +1334,21 @@ function cotizacionDeReferencia(ref){
   return ref.cotizManual || ref.cotizHist || null;
 }
 
+// Precio de la referencia en guaraníes, o null si todavía no hay cotización.
+// Vendida: USD × cotización del día de la venta. Ofrecida en USD: × cotización de la fecha del AMC. Ofrecida en Gs.: tal cual.
+function precioGsDeReferencia(ref){
+  const d = ref.data;
+  if(esOfrecida(d) && d.mon==='PYG') return d.pp;
+  const cotiz = cotizacionDeReferencia(ref);
+  if(!cotiz) return null;
+  return (esOfrecida(d) ? d.pp : d.pr) * cotiz;
+}
+
 // Devuelve el $/m² de terreno EN GUARANÍES para una referencia, o null si falta info
 function calcularRateTerrenoGs(ref){
   const d = ref.data;
-  const cotiz = cotizacionDeReferencia(ref);
-  if(!cotiz) return null; // todavía no tenemos cotización histórica de esa fecha
-  const precioGs = d.pr * cotiz;
+  const precioGs = precioGsDeReferencia(ref);
+  if(precioGs===null) return null; // todavía no tenemos cotización de esa fecha
   if(!d.mc || d.mc<=0) return precioGs / d.mt; // referencia de terreno puro
   if(ref.rateConstr===null || ref.rateConstr===undefined || isNaN(ref.rateConstr)) return null; // falta que el usuario asigne construcción
   const valorConstrGs = ref.rateConstr * d.mc;
@@ -1139,26 +1376,32 @@ function renderReferencias(){
     const d = ref.data;
     const esTerrenoPuro = !d.mc || d.mc<=0;
     const cotiz = cotizacionDeReferencia(ref);
-    const fueraDeVentana = new Date(d.fc+'T12:00:00') < limiteAntiguedad;
+    const ofr = esOfrecida(d), enGs = ofr && d.mon==='PYG';
+    const fechaCotiz = ofr ? (ref.cotizFecha || fechaEvalActual()) : d.fc; // ofrecida en USD: fecha del AMC
+    const fueraDeVentana = !ofr && new Date(d.fc+'T12:00:00') < limiteAntiguedad; // la antigüedad solo aplica a vendidas
 
     let cotizHtml = '';
-    if(ref.cargando){
-      cotizHtml = `<div class="ref-calc"><span class="badge-pendiente">Buscando cotización histórica del ${d.fc}…</span></div>`;
+    if(enGs){
+      cotizHtml = `<div class="footnote" style="margin-top:0;">Publicada en guaraníes: se usa el precio pedido tal cual, sin convertir.</div>`;
+    } else if(ref.cargando){
+      cotizHtml = `<div class="ref-calc"><span class="badge-pendiente">${ofr ? `Buscando cotización del ${fechaCotiz} (fecha del AMC)…` : `Buscando cotización histórica del ${d.fc}…`}</span></div>`;
     } else if(!cotiz){
       cotizHtml = `
         <div class="grid2">
           <div class="field">
-            <label>No se pudo obtener la cotización del ${d.fc} — ingresala a mano (Gs/USD)</label>
+            <label>No se pudo obtener la cotización del ${fechaCotiz} — ingresala a mano (Gs/USD)</label>
             <input type="number" data-cotizid="${d.id}" class="input-cotiz-manual" value="${ref.cotizManual ?? ''}" placeholder="ej. 7200">
           </div>
         </div>`;
+    } else if(ofr){
+      cotizHtml = `<div class="footnote" style="margin-top:0;">Cotización del ${fechaCotiz} (fecha del AMC): 1 USD = ${Math.round(cotiz).toLocaleString('es-PY')} Gs.${ref.cotizManual ? ' (manual)' : ''} → Precio pedido: ${fmtGs(precioGsDeReferencia(ref))}</div>`;
     } else {
       cotizHtml = `<div class="footnote" style="margin-top:0;">Cotización del ${d.fc}: 1 USD = ${Math.round(cotiz).toLocaleString('es-PY')} Gs.${ref.cotizManual ? ' (manual)' : ''} → Precio: ${fmtGs(d.pr*cotiz)}</div>`;
     }
 
     const rateTerrenoGs = calcularRateTerrenoGs(ref);
     let calcHtml = '';
-    if(cotiz){
+    if(precioGsDeReferencia(ref)!==null){ // (para una vendida es lo mismo que tener cotización)
       if(esTerrenoPuro){
         calcHtml = `<div class="ref-calc">Terreno puro (sin construcción) → <span class="rate">${rateTerrenoGs!==null ? Math.round(rateTerrenoGs).toLocaleString('es-PY') : '—'} Gs./m²</span> de terreno directo</div>`;
       } else {
@@ -1176,11 +1419,12 @@ function renderReferencias(){
     }
 
     return `
-      <div class="ref-card">
+      <div class="ref-card${ofr ? ' oferta' : ''}">
         <div class="ref-head">
           <div>
-            <div class="ref-title"><a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener">ID ${d.id}</a> · ${d.fc}</div>
-            <div class="ref-dir">${d.dir || '(sin dirección)'}</div>
+            <div class="ref-title"><a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener">ID ${d.id}</a> · ${ofr ? `Publicada ${fechaCorta(d.fa)}` : d.fc} · <span class="origen${ofr ? ' oferta' : ''}">${ofr ? 'En oferta' : 'Vendida'}</span></div>
+            <div class="ref-dir">${ofr ? escHtml(d.dir) || '(sin dirección)' : d.dir || '(sin dirección)'}</div>
+            ${ofr && d.en ? `<div class="ref-aviso">${escHtml(d.en)}</div>` : ''}
           </div>
           <button class="btn-icon" data-remove="${d.id}" title="Quitar">×</button>
         </div>
@@ -1189,7 +1433,7 @@ function renderReferencias(){
           <span>Subtipo: <b>${subtipoLabel(d.su)}</b></span>
           <span>M² terreno: <b>${d.mt}</b></span>
           ${d.mc ? `<span>M² construidos: <b>${d.mc}</b></span>` : ''}
-          <span>Precio: <b>${fmtUSD(d.pr)}</b></span>
+          ${ofr ? `<span>Precio pedido: <b>${precioTexto(d)}</b></span>` : `<span>Precio: <b>${fmtUSD(d.pr)}</b></span>`}
         </div>
         ${fueraDeVentana ? `<div class="footnote" style="margin-top:0;"><span class="badge-pendiente">⚠ Fuera de la ventana de antigüedad actual (${antiguedadMeses} meses)</span></div>` : ''}
         ${cotizHtml}
@@ -1229,6 +1473,7 @@ function renderReferencias(){
 
   actualizarPromedio();
   renderDock();
+  marcarAgregadas();
 }
 
 function actualizarPromedio(){
@@ -1244,13 +1489,25 @@ function actualizarPromedio(){
   document.getElementById('promedioSub').textContent = `Calculado con ${rates.length} de ${referencias.length} referencia(s)${referencias.length>rates.length ? ' (faltan datos en las demás)' : ''}`;
 }
 
+// En el listado, las ventas ya sumadas muestran "Agregada ✓" (y vuelven a "Agregar" si se quitan).
+function marcarAgregadas(){
+  resultadosBusqueda.querySelectorAll('button[data-id]').forEach(b=>{
+    const ya = referencias.some(r=>r.data.id===parseInt(b.dataset.id));
+    b.textContent = ya ? 'Agregada ✓' : 'Agregar';
+    b.disabled = ya;
+    b.classList.toggle('ok', ya);
+  });
+}
+
 // Barra de referencias del mapa: solo muestra lo que ya calculó el AMC (tasa de cada referencia y promedio).
 function renderDock(){
   const chips = document.getElementById('dockRefs');
   chips.innerHTML = referencias.map(ref=>{
     const d = ref.data, r = calcularRateTerrenoGs(ref);
-    const tasa = r!==null ? `${(r/1e6).toLocaleString('es-PY',{maximumFractionDigits:2})} M Gs./m²` : (cotizacionDeReferencia(ref) ? 'falta construcción' : 'buscando…');
-    return `<div class="chip"><b>${tasa}</b><span>${escHtml((tituloCase(d.dir)||'ID '+d.id).slice(0,26))}</span><button type="button" class="x" data-dock-del="${d.id}" aria-label="Quitar">×</button></div>`;
+    const tasa = r!==null ? `${(r/1e6).toLocaleString('es-PY',{maximumFractionDigits:2})} M Gs./m²`
+      : ref.cargando ? 'buscando…' : precioGsDeReferencia(ref)!==null ? 'falta construcción' : 'falta cotización';
+    const ofr = esOfrecida(d);
+    return `<div class="chip${ofr ? ' oferta' : ''}"><i class="origen">${ofr ? 'En oferta' : 'Vendida'}</i><b>${tasa}</b><span>${escHtml((tituloCase(d.dir)||'ID '+d.id).slice(0,26))}</span><button type="button" class="x" data-dock-del="${d.id}" aria-label="Quitar">×</button></div>`;
   }).join('');
   chips.querySelectorAll('[data-dock-del]').forEach(b=>b.addEventListener('click', ()=>quitarReferencia(parseInt(b.dataset.dockDel))));
   const n = referencias.length;
@@ -1275,12 +1532,13 @@ function renderComparables(list){
   cont.innerHTML = list.map(c=>{
     const familia = familiaSubtipo(c.su);
     const pillLabel = {unidad:'Unidad', casa:'Casa', terreno:'Terreno', otro:subtipoLabel(c.su)}[familia];
+    const ofr = c.origen==='ofrecida';
     const base = UNIT_SUBTYPES.has(c.su) ? c.mc : c.mt;
-    const rate = (base && base>0) ? Math.round(c.pr/base) : null;
+    const rate = (base && base>0) ? Math.round((ofr ? c.prUsd : c.pr)/base) : null;
     const etiquetaM2 = UNIT_SUBTYPES.has(c.su) ? 'm² propio' : 'm²';
 
     let diasHtml = '';
-    if(c.fa){
+    if(c.fa && !ofr){ // una ofrecida no tiene fecha de venta
       const dias = Math.round((new Date(c.fc+'T12:00:00') - new Date(c.fa+'T12:00:00')) / (1000*60*60*24));
       if(dias>0) diasHtml = `<span class="dias-badge">vendido en ${dias.toLocaleString('es-PY')} días</span>`;
     }
@@ -1290,7 +1548,7 @@ function renderComparables(list){
       mapaHtml = `
       <a class="map-link" href="https://www.google.com/maps?q=${c.la},${c.lo}" target="_blank" rel="noopener" aria-label="Ver ubicación en Google Maps">
         <img class="map-img" src="${tileUrlDe(c.la, c.lo, 16)}" alt="" onerror="this.remove()">
-        <div class="map-pin"></div>
+        <div class="map-pin${ofr ? ' oferta' : ''}"></div>
       </a>`;
     }
 
@@ -1299,13 +1557,13 @@ function renderComparables(list){
       : `${base || '—'} ${etiquetaM2}`;
 
     return `
-      <div class="comparable-card">
+      <div class="comparable-card" data-id="${c.id}">
         ${mapaHtml}
         <div class="body">
-          <span class="pill pill-${familia}">${pillLabel}</span>
-          <div class="c-dir">${tituloCase(c.dir)||'(sin dirección)'} <span class="c-barrio">— ${c.mu}</span></div>
-          <div class="c-fecha-row"><span>${c.fc}</span>${diasHtml}</div>
-          <div class="c-precio">${fmtUSD(c.pr)}</div>
+          <span class="pill pill-${familia}">${pillLabel}</span> <span class="pill pill-origen${ofr ? ' oferta' : ''}">${ofr ? 'En oferta' : 'Vendida'}</span>
+          <div class="c-dir">${escHtml(tituloCase(c.dir))||'(sin dirección)'} <span class="c-barrio">— ${c.mu}</span></div>
+          <div class="c-fecha-row"><span>${ofr ? `Publicada ${fechaCorta(c.fa)}` : c.fc}</span>${diasHtml}</div>
+          <div class="c-precio">${ofr ? `${precioTexto(c)}<small> precio pedido</small>` : fmtUSD(c.pr)}</div>
           <div class="c-datos">${datosTexto}</div>
         </div>
       </div>`;
@@ -1431,7 +1689,10 @@ async function calcularTasacion(){
     `Terreno: ${m2t} m² × ${Math.round(promRateGs).toLocaleString('es-PY')} Gs./m² (promedio en guaraníes de ${rates.length} referencia(s), cada una a su cotización histórica). ` +
     (m2c>0 ? `Construcción: ${m2c} m² × ${Math.round(rateConstrGs).toLocaleString('es-PY')} Gs./m² (tu estimación). ` : '') +
     (extraM2>0 ? `${extraNombre}: ${extraM2} m² × ${Math.round(extraRateGs).toLocaleString('es-PY')} Gs./m². ` : '') +
-    `Conversión final a USD con la cotización del ${fechaEval}: 1 USD = ${Math.round(cotizEval).toLocaleString('es-PY')} Gs.`;
+    `Conversión final a USD con la cotización del ${fechaEval}: 1 USD = ${Math.round(cotizEval).toLocaleString('es-PY')} Gs.` +
+    (referencias.some(ref=>esOfrecida(ref.data) && calcularRateTerrenoGs(ref)!==null)
+      ? ` Las referencias en oferta usan el precio pedido: las publicadas en USD, a la cotización del ${fechaEval}; las publicadas en guaraníes, tal cual.`
+      : '');
 
   panel.style.display = 'block';
   panel.scrollIntoView({behavior:'smooth', block:'start'});
@@ -1450,8 +1711,16 @@ async function calcularTasacion(){
       fa: x.ref.data.fa,
       la: x.ref.data.la,
       lo: x.ref.data.lo,
+      id: x.ref.data.id,
+      origen: esOfrecida(x.ref.data) ? 'ofrecida' : 'vendida',
+      pp: x.ref.data.pp,
+      mon: x.ref.data.mon,
+      // solo para mostrar el $/m² en USD de la tarjeta: una ofrecida en Gs. se pasa con la cotización del AMC
+      prUsd: !esOfrecida(x.ref.data) ? x.ref.data.pr : x.ref.data.mon==='USD' ? x.ref.data.pp : x.ref.data.pp / cotizEval,
     }))
-    .sort((a,b)=> new Date(b.fc) - new Date(a.fc));
+    // primero las vendidas (cierre más reciente primero), después las ofrecidas (publicación más reciente primero)
+    .sort((a,b)=> a.origen!==b.origen ? (a.origen==='vendida' ? -1 : 1)
+      : a.origen==='vendida' ? new Date(b.fc) - new Date(a.fc) : new Date(b.fa) - new Date(a.fa));
 
   ultimoResultado = {
     fechaEval,
