@@ -175,6 +175,17 @@ body.modo-cliente #panelPresentacion{display:block;}
 .titulo-paso em{font:italic 400 1.08em var(--num);color:var(--oro);letter-spacing:-.01em;}
 .ayuda-paso{color:var(--pizarra);font-size:15.5px;max-width:46ch;margin:0 0 4px;justify-self:end;}
 #btnAgregarRef{display:none;}
+/* referencia cargada a mano */
+.manual-wrap{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:0 0 14px;}
+.manual-ayuda{color:var(--pizarra);font-size:14px;}
+.base-toggle .manual-arriba{margin-left:auto;padding:6px 14px;font-size:13px;}
+.manual-form{display:grid;gap:14px;border:1px solid var(--linea);border-radius:14px;padding:18px;margin:0 0 18px;background:var(--blanco);}
+.manual-form[hidden],.manual-form [hidden]{display:none;}
+.manual-form input,.manual-form select{width:100%;box-sizing:border-box;}
+.manual-error{color:var(--alerta);font-size:14px;margin:0;}
+.manual-error:empty{display:none;}
+.manual-acc{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.comparable-card .c-aviso{font-size:13px;}
 #buscadorPanel{display:block;margin-top:0;border-top:0;padding-top:0;}
 /* selector de base: vendidas u ofrecidas (nunca las dos a la vez) */
 .base-toggle{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 14px;font-size:14px;color:var(--pizarra);}
@@ -420,6 +431,7 @@ body.modo-cliente #panelPresentacion{display:block;}
         <span>Buscando en:</span>
         <button type="button" class="base-btn active" id="baseVendidasBtn" aria-pressed="true">Vendidas · <b id="cuentaVendidas">—</b></button>
         <button type="button" class="base-btn" id="baseOfrecidasBtn" aria-pressed="false">Ofrecidas · <b id="cuentaOfrecidas">—</b></button>
+        <button type="button" class="btn-ghost manual-arriba" id="btnManualArriba">+ Referencia a mano</button>
       </div>
       <div class="filtros-barra">
         <div class="modo-toggle">
@@ -488,6 +500,30 @@ body.modo-cliente #panelPresentacion{display:block;}
     </div>
 
     <h3 class="sub-h">Tus referencias</h3>
+    <div class="manual-wrap">
+      <button type="button" class="btn-ghost" id="btnManual" aria-expanded="false" aria-controls="manualForm">+ Referencia a mano</button>
+      <span class="manual-ayuda">Para propiedades que no están en Century: otras inmobiliarias, Infocasas, etc.</span>
+    </div>
+    <form class="manual-form" id="manualForm" hidden novalidate>
+      <div class="grid3">
+        <div class="field"><label for="manSituacion">Situación</label><select id="manSituacion"><option value="vendida">Vendida</option><option value="oferta">En oferta</option></select></div>
+        <div class="field" id="manFechaCampo"><label for="manFecha">Fecha de venta</label><input type="date" id="manFecha"></div>
+        <div class="field"><label for="manTipo">Tipo</label><select id="manTipo"><option value="terreno">Terreno</option><option value="casa">Casa</option></select></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label for="manBarrio">Barrio / Ciudad</label><input type="text" id="manBarrio" list="manBarrios" autocomplete="off" placeholder="ej. Villa Morra"><datalist id="manBarrios"></datalist></div>
+        <div class="field"><label for="manPrecio">Precio</label><input type="text" inputmode="decimal" id="manPrecio" placeholder="ej. 180.000"></div>
+        <div class="field"><label for="manMoneda">Moneda</label><select id="manMoneda"><option value="USD">USD</option><option value="PYG">Gs.</option></select></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label for="manM2t">M² de terreno</label><input type="text" inputmode="decimal" id="manM2t" placeholder="ej. 360"></div>
+        <div class="field" id="manM2cCampo" hidden><label for="manM2c">M² construidos</label><input type="text" inputmode="decimal" id="manM2c" placeholder="ej. 180"></div>
+        <div class="field"><label for="manDir">Dirección o descripción (opcional)</label><input type="text" id="manDir" placeholder="ej. Mcal. López c/ Boggiani"></div>
+      </div>
+      <div class="field"><label for="manLink">Link del aviso (opcional)</label><input type="url" id="manLink" placeholder="https://…"></div>
+      <p class="manual-error" id="manError" role="alert"></p>
+      <div class="manual-acc"><button type="submit" class="btn">Sumar referencia</button><button type="button" class="btn-ghost" id="manCancelar">Cancelar</button></div>
+    </form>
     <p class="vacio" id="refsVacio">Todavía no sumaste ninguna. Las ventas que elijas aparecen acá para que les asignes el Gs./m² de construcción.</p>
     <div id="listaReferencias"></div>
 
@@ -1278,7 +1314,12 @@ async function agregarReferencia(id){
   if(referencias.some(r=>r.data.id===id)) return;
   const d = datosBase().find(x=>x.id===id); // el botón "Agregar" siempre es de la base que se está viendo
   if(!d) return;
-  const enGs = esOfrecida(d) && d.mon==='PYG'; // ofrecida publicada en guaraníes: no necesita cotización
+  await sumarReferencia(d);
+}
+
+async function sumarReferencia(d){
+  // Ofrecida publicada en guaraníes, o vendida cargada a mano en guaraníes (pg): no necesita cotización.
+  const enGs = (esOfrecida(d) && d.mon==='PYG') || d.pg>0;
   const ref = {data:d, rateConstr: null, cotizHist: undefined, cotizManual: null, cargando: !enGs};
   referencias.push(ref);
   renderReferencias();
@@ -1318,6 +1359,94 @@ function quitarReferencia(id){
   renderReferencias();
 }
 
+// ---------- Referencias cargadas a mano ----------
+// Propiedades que no están en Century (otras inmobiliarias, Infocasas...). Una vendida se arma como las vendidas de
+// Century (fecha de venta; en USD se pasa a Gs. con la cotización de esa fecha; en Gs. va tal cual, campo pg) y una
+// en oferta como las ofrecidas (precio pedido en su moneda). Así entran por la misma fórmula y al mismo promedio.
+let ultimoIdManual = 0; // IDs negativos: nunca chocan con un ID de 21online
+function esManual(d){ return !!(d && d.manual); }
+// "180.000" → 180000; "360,5" → 360.5; "180000" → 180000; "180,000" (miles a la estadounidense) → 180000.
+// null si no es un número mayor que 0 (letras, "1e3", "0x10"... no valen).
+function numeroPY(s){
+  s = String(s ?? '').trim().replace(/\s/g, '');
+  if(!s || !/^[\d.,]+$/.test(s)) return null;
+  if(/^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+  else if(s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  const n = Number(s);
+  return isFinite(n) && n > 0 ? n : null;
+}
+// Solo links http(s): cualquier otra cosa (ej. "javascript:") se descarta.
+function linkSeguro(s){
+  s = String(s ?? '').trim();
+  if(!s) return null;
+  if(!/^https?:\/\//i.test(s)) s = 'https://' + s;
+  try{ const u = new URL(s); return /^https?:$/.test(u.protocol) ? u.href : null; } catch(e){ return null; }
+}
+function tituloManual(d){
+  return d.link ? `<a href="${escHtml(d.link)}" target="_blank" rel="noopener">Aviso ↗</a> · A mano` : 'A mano';
+}
+
+const manualForm = document.getElementById('manualForm');
+const btnManual = document.getElementById('btnManual');
+function mostrarFormManual(abrir){
+  manualForm.hidden = !abrir;
+  btnManual.setAttribute('aria-expanded', abrir);
+  document.getElementById('manError').textContent = '';
+  if(!abrir) return;
+  const barrios = new Set([...DATA.map(d=>d.mu), ...(OFRECIDAS || []).map(d=>d.mu)].filter(Boolean));
+  document.getElementById('manBarrios').innerHTML = [...barrios].sort((a,b)=>a.localeCompare(b,'es'))
+    .map(b=>`<option value="${escHtml(b)}">`).join('');
+  document.getElementById('manSituacion').focus();
+}
+function actualizarCamposManual(){
+  const vendida = document.getElementById('manSituacion').value === 'vendida';
+  document.getElementById('manFechaCampo').hidden = !vendida;
+  document.getElementById('manM2cCampo').hidden = document.getElementById('manTipo').value !== 'casa';
+}
+btnManual.addEventListener('click', ()=>mostrarFormManual(manualForm.hidden));
+// El mismo formulario, desde arriba de la búsqueda: lo abre y baja hasta él.
+document.getElementById('btnManualArriba').addEventListener('click', ()=>{
+  mostrarFormManual(true);
+  document.querySelector('.manual-wrap').scrollIntoView({behavior:'smooth', block:'start'});
+});
+document.getElementById('manCancelar').addEventListener('click', ()=>mostrarFormManual(false));
+document.getElementById('manSituacion').addEventListener('change', actualizarCamposManual);
+document.getElementById('manTipo').addEventListener('change', actualizarCamposManual);
+manualForm.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const val = id => document.getElementById(id).value;
+  const vendida = val('manSituacion') === 'vendida', casa = val('manTipo') === 'casa';
+  const fecha = val('manFecha'), barrio = val('manBarrio').trim(), moneda = val('manMoneda');
+  const precio = numeroPY(val('manPrecio')), mt = numeroPY(val('manM2t')), mc = casa ? numeroPY(val('manM2c')) : null;
+  const linkTxt = val('manLink').trim(), link = linkSeguro(linkTxt);
+  const errores = [];
+  if(vendida && !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) errores.push('la fecha de venta');
+  else if(vendida && fecha > hoyStr()) errores.push('una fecha de venta que no sea futura');
+  if(!barrio) errores.push('el barrio');
+  if(!precio) errores.push('el precio (solo números, ej. 180.000)');
+  // Un precio fuera de escala casi siempre es la moneda equivocada (Gs. cargado como USD, o al revés).
+  else if(moneda==='USD' && precio < 1000) errores.push('el precio: es muy bajo para USD');
+  else if(moneda==='USD' && precio > 50000000) errores.push('el precio: es muy alto para USD, ¿es en Gs.?');
+  else if(moneda==='PYG' && precio < 1000000) errores.push('el precio: es muy bajo para Gs., ¿es en USD?');
+  if(!mt) errores.push('los m² de terreno');
+  if(casa && !mc) errores.push('los m² construidos');
+  if(linkTxt && !link) errores.push('un link válido (o dejalo vacío)');
+  if(errores.length){
+    document.getElementById('manError').textContent = 'Revisá: ' + errores.join('; ') + '.';
+    return;
+  }
+  const d = {id: -(++ultimoIdManual), manual: 1, link, mu: barrio, ti: 'habitacional', su: casa ? 'casa' : 'terreno',
+             mt, mc: mc || null, dir: val('manDir').trim() || null, la: null, lo: null};
+  if(!vendida){ d.pp = precio; d.mon = moneda; d.fa = fechaEvalActual(); } // en oferta: como una ofrecida
+  else{ d.fc = fecha; if(moneda==='USD') d.pr = precio; else d.pg = precio; }
+  manualForm.reset();
+  actualizarCamposManual();
+  mostrarFormManual(false);
+  sumarReferencia(d);
+});
+actualizarCamposManual();
+
 function fmtUSD(n){return 'USD ' + Math.round(n).toLocaleString('es-PY');}
 function fmtGs(n){return Math.round(n).toLocaleString('es-PY') + ' Gs.';}
 
@@ -1336,8 +1465,10 @@ function cotizacionDeReferencia(ref){
 
 // Precio de la referencia en guaraníes, o null si todavía no hay cotización.
 // Vendida: USD × cotización del día de la venta. Ofrecida en USD: × cotización de la fecha del AMC. Ofrecida en Gs.: tal cual.
+// Vendida cargada a mano en Gs. (pg): tal cual.
 function precioGsDeReferencia(ref){
   const d = ref.data;
+  if(d.pg>0) return d.pg;
   if(esOfrecida(d) && d.mon==='PYG') return d.pp;
   const cotiz = cotizacionDeReferencia(ref);
   if(!cotiz) return null;
@@ -1376,13 +1507,13 @@ function renderReferencias(){
     const d = ref.data;
     const esTerrenoPuro = !d.mc || d.mc<=0;
     const cotiz = cotizacionDeReferencia(ref);
-    const ofr = esOfrecida(d), enGs = ofr && d.mon==='PYG';
+    const ofr = esOfrecida(d), enGs = (ofr && d.mon==='PYG') || d.pg>0;
     const fechaCotiz = ofr ? (ref.cotizFecha || fechaEvalActual()) : d.fc; // ofrecida en USD: fecha del AMC
     const fueraDeVentana = !ofr && new Date(d.fc+'T12:00:00') < limiteAntiguedad; // la antigüedad solo aplica a vendidas
 
     let cotizHtml = '';
     if(enGs){
-      cotizHtml = `<div class="footnote" style="margin-top:0;">Publicada en guaraníes: se usa el precio pedido tal cual, sin convertir.</div>`;
+      cotizHtml = `<div class="footnote" style="margin-top:0;">${ofr ? 'Publicada en guaraníes: se usa el precio pedido tal cual, sin convertir.' : 'Precio en guaraníes: se usa tal cual, sin convertir.'}</div>`;
     } else if(ref.cargando){
       cotizHtml = `<div class="ref-calc"><span class="badge-pendiente">${ofr ? `Buscando cotización del ${fechaCotiz} (fecha del AMC)…` : `Buscando cotización histórica del ${d.fc}…`}</span></div>`;
     } else if(!cotiz){
@@ -1422,18 +1553,18 @@ function renderReferencias(){
       <div class="ref-card${ofr ? ' oferta' : ''}">
         <div class="ref-head">
           <div>
-            <div class="ref-title"><a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener">ID ${d.id}</a> · ${ofr ? `Publicada ${fechaCorta(d.fa)}` : d.fc} · <span class="origen${ofr ? ' oferta' : ''}">${ofr ? 'En oferta' : 'Vendida'}</span></div>
-            <div class="ref-dir">${ofr ? escHtml(d.dir) || '(sin dirección)' : d.dir || '(sin dirección)'}</div>
+            <div class="ref-title">${esManual(d) ? tituloManual(d) : `<a href="https://21online.century21.com.py/propiedades/ver/detalle/${d.id}" target="_blank" rel="noopener">ID ${d.id}</a>`} · ${ofr ? (esManual(d) ? 'precio pedido' : `Publicada ${fechaCorta(d.fa)}`) : d.fc} · <span class="origen${ofr ? ' oferta' : ''}">${ofr ? 'En oferta' : 'Vendida'}</span></div>
+            <div class="ref-dir">${ofr || esManual(d) ? escHtml(d.dir) || '(sin dirección)' : d.dir || '(sin dirección)'}</div>
             ${ofr && d.en ? `<div class="ref-aviso">${escHtml(d.en)}</div>` : ''}
           </div>
           <button class="btn-icon" data-remove="${d.id}" title="Quitar">×</button>
         </div>
         <div class="ref-datos">
-          <span>Barrio: <b>${d.mu}</b></span>
+          <span>Barrio: <b>${escHtml(d.mu)}</b></span>
           <span>Subtipo: <b>${subtipoLabel(d.su)}</b></span>
           <span>M² terreno: <b>${d.mt}</b></span>
           ${d.mc ? `<span>M² construidos: <b>${d.mc}</b></span>` : ''}
-          ${ofr ? `<span>Precio pedido: <b>${precioTexto(d)}</b></span>` : `<span>Precio: <b>${fmtUSD(d.pr)}</b></span>`}
+          ${ofr ? `<span>Precio pedido: <b>${precioTexto(d)}</b></span>` : `<span>Precio: <b>${d.pg>0 ? fmtGs(d.pg) : fmtUSD(d.pr)}</b></span>`}
         </div>
         ${fueraDeVentana ? `<div class="footnote" style="margin-top:0;"><span class="badge-pendiente">⚠ Fuera de la ventana de antigüedad actual (${antiguedadMeses} meses)</span></div>` : ''}
         ${cotizHtml}
@@ -1507,7 +1638,7 @@ function renderDock(){
     const tasa = r!==null ? `${(r/1e6).toLocaleString('es-PY',{maximumFractionDigits:2})} M Gs./m²`
       : ref.cargando ? 'buscando…' : precioGsDeReferencia(ref)!==null ? 'falta construcción' : 'falta cotización';
     const ofr = esOfrecida(d);
-    return `<div class="chip${ofr ? ' oferta' : ''}"><i class="origen">${ofr ? 'En oferta' : 'Vendida'}</i><b>${tasa}</b><span>${escHtml((tituloCase(d.dir)||'ID '+d.id).slice(0,26))}</span><button type="button" class="x" data-dock-del="${d.id}" aria-label="Quitar">×</button></div>`;
+    return `<div class="chip${ofr ? ' oferta' : ''}"><i class="origen">${ofr ? 'En oferta' : 'Vendida'}</i><b>${tasa}</b><span>${escHtml((tituloCase(d.dir)||(esManual(d) ? 'A mano · '+d.mu : 'ID '+d.id)).slice(0,26))}</span><button type="button" class="x" data-dock-del="${d.id}" aria-label="Quitar">×</button></div>`;
   }).join('');
   chips.querySelectorAll('[data-dock-del]').forEach(b=>b.addEventListener('click', ()=>quitarReferencia(parseInt(b.dataset.dockDel))));
   const n = referencias.length;
@@ -1561,10 +1692,11 @@ function renderComparables(list){
         ${mapaHtml}
         <div class="body">
           <span class="pill pill-${familia}">${pillLabel}</span> <span class="pill pill-origen${ofr ? ' oferta' : ''}">${ofr ? 'En oferta' : 'Vendida'}</span>
-          <div class="c-dir">${escHtml(tituloCase(c.dir))||'(sin dirección)'} <span class="c-barrio">— ${c.mu}</span></div>
-          <div class="c-fecha-row"><span>${ofr ? `Publicada ${fechaCorta(c.fa)}` : c.fc}</span>${diasHtml}</div>
-          <div class="c-precio">${ofr ? `${precioTexto(c)}<small> precio pedido</small>` : fmtUSD(c.pr)}</div>
+          <div class="c-dir">${escHtml(tituloCase(c.dir))||'(sin dirección)'} <span class="c-barrio">— ${escHtml(c.mu)}</span></div>
+          <div class="c-fecha-row"><span>${ofr ? (c.manual ? 'En venta' : `Publicada ${fechaCorta(c.fa)}`) : c.fc}</span>${diasHtml}</div>
+          <div class="c-precio">${ofr ? `${precioTexto(c)}<small> precio pedido</small>` : c.pg>0 ? fmtGs(c.pg) : fmtUSD(c.pr)}</div>
           <div class="c-datos">${datosTexto}</div>
+          ${c.link ? `<a class="c-aviso" href="${escHtml(c.link)}" target="_blank" rel="noopener">Ver aviso ↗</a>` : ''}
         </div>
       </div>`;
   }).join('');
@@ -1704,7 +1836,11 @@ async function calcularTasacion(){
       dir: x.ref.data.dir || '(sin dirección)',
       mu: x.ref.data.mu || '',
       mt: x.ref.data.mt,
-      pr: x.ref.data.pr,
+      // vendida cargada a mano en Gs.: el USD es solo para mostrar el $/m² de la tarjeta (cotización del AMC)
+      pr: x.ref.data.pg>0 ? x.ref.data.pg / cotizEval : x.ref.data.pr,
+      pg: x.ref.data.pg,
+      manual: x.ref.data.manual,
+      link: x.ref.data.link,
       fc: x.ref.data.fc,
       su: x.ref.data.su,
       mc: x.ref.data.mc,
